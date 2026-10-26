@@ -1,0 +1,29 @@
+# Build artifacts / temp
+**/.tmp/
+tools/.tmp/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+
+# Never publish generated reports or spreadsheets (may contain real tenant data)
+*.xlsx
+*.xls
+*.csv
+**/runs/
+**/network-health-transport/
+**/network-health-acquisition/
+**/report-publication/
+**/__pycache__/
+
+# Secrets / local env
+.env
+*.env
+*.pem
+*.key
+
+# Private, un-published helper scripts (e.g. your own skill-push wrapper)
+*.local.sh
+tools/local/

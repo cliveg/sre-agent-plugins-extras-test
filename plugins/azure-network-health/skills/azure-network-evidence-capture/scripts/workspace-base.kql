@@ -1,0 +1,4 @@
+AzureActivity
+| where SubscriptionId =~ '__SUBSCRIPTION__'
+| where TimeGenerated >= datetime('__START__') and TimeGenerated <= datetime('__END__')
+| where CategoryValue in ('Administrative', 'ResourceHealth', 'ServiceHealth')

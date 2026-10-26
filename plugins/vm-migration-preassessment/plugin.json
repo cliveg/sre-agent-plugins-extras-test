@@ -1,0 +1,32 @@
+{
+  "id": "vm-migration-preassessment",
+  "name": "Azure VM Migration Pre-Assessment",
+  "version": "0.1.0",
+  "description": "Orchestrates a governed, repeatable AzVMTools Deep preflight through a private GitHub Actions runner and turns GO/NO-GO results into a scoped change plan. Performs no migration actions.",
+  "author": {
+    "name": "Clive Graven"
+  },
+  "category": "Reliability",
+  "keywords": [
+    "azure",
+    "virtual-machines",
+    "migration",
+    "preflight",
+    "assessment",
+    "nvme",
+    "availability-zones",
+    "change-planning"
+  ],
+  "skills": [
+    {
+      "name": "vm-migration-preassessment",
+      "path": "skills/vm-migration-preassessment/SKILL.md",
+      "description": "Dispatches and interprets a private AzVMTools Deep preflight workflow, categorizes blockers, and produces a scoped change plan without performing migration.",
+      "tools": [
+        "SearchMemory",
+        "RunAzCliReadCommands",
+        "GetAzCliHelp"
+      ]
+    }
+  ]
+}

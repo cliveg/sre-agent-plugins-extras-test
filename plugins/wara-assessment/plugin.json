@@ -1,0 +1,35 @@
+{
+  "id": "wara-assessment",
+  "name": "WARA Reliability Assessment",
+  "version": "0.2.0",
+  "description": "Runs Microsoft's Well-Architected Reliability Assessment (collector + analyzer) one scope at a time, in restricted-egress SRE Agent sandboxes or anywhere PowerShell 7 runs, and turns the results into a provenance-tracked, prioritized findings report with month-over-month deltas, plus Linux reproduction of Start-WARAReport (PowerPoint, findings workbook) and a Word report with environment/criticality context. Read-only.",
+  "author": {
+    "name": "Clive Graven"
+  },
+  "category": "Reliability",
+  "keywords": [
+    "wara",
+    "well-architected",
+    "reliability",
+    "aprl",
+    "resiliency",
+    "assessment",
+    "azure-advisor",
+    "prioritization"
+  ],
+  "skills": [
+    {
+      "name": "wara-assessment",
+      "path": "skills/wara-assessment/SKILL.md",
+      "description": "Runs WARA for one scope via Invoke-WaraRun.ps1, verifies run provenance, and reviews the deterministic prioritized findings (remediate vs validate), publishing results to a repository or download links.",
+      "tools": [
+        "RunInTerminal",
+        "ReadFile",
+        "CreateFile",
+        "SaveFileToBlob",
+        "SearchMemory",
+        "RunAzCliReadCommands"
+      ]
+    }
+  ]
+}

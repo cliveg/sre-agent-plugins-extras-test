@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+      "id": "/providers/Microsoft.Authorization/policyDefinitions/example",
+      "kind": "definition",
+      "displayName": "Example declared tag policy"
+    }
+  ],
+  "limitations": []
+}

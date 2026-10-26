@@ -1,0 +1,61 @@
+{
+  "name": "sre-agent-plugins-extras",
+  "owner": {
+    "name": "Clive Graven"
+  },
+  "metadata": {
+    "description": "Community marketplace of reusable Azure SRE Agent plugins (skills) plus their companion 'extras' (subagents, scheduled tasks, knowledge base) that the marketplace itself does not carry.",
+    "version": "1.1.0"
+  },
+  "plugins": [
+    {
+      "name": "azure-network-health",
+      "version": "0.21.2",
+      "description": "Reference-led comprehensive Azure network configuration assessment adapting Usman Mahmood and Network Desk procedures, with contextual specialist reviews, source-backed executive/engineering reports and guarded private publication. Read-only; no logging changes or invented effective health.",
+      "author": {"name": "Clive Graven"},
+      "category": "Reliability",
+      "source": "./plugins/azure-network-health",
+      "homepage": "https://github.com/cliveg/sre-agent-plugins-extras-test/tree/main/plugins/azure-network-health"
+    },
+    {
+      "name": "azure-tag-governance",
+      "version": "0.1.0",
+      "description": "Builds a provenance-aware Azure tag and basic naming governance profile from read-only evidence, evaluates resources deterministically, and publishes immutable assessment bundles.",
+      "author": {"name": "Clive Graven"},
+      "category": "Governance",
+      "source": "./plugins/azure-tag-governance",
+      "homepage": "https://github.com/cliveg/sre-agent-plugins-extras-test/tree/main/plugins/azure-tag-governance"
+    },
+    {
+      "name": "sla-reporting",
+      "description": "Estimates Azure availability/SLA per region, service, and month from real-world Resource Health, renders an SLA service-credit heatmap, and lists Service Health incidents for context. Native adaptation of Guil Lima's Get-AzureSLAReport.ps1 (no Automation Account, no Excel).",
+      "author": {
+        "name": "Clive Graven"
+      },
+      "category": "Reliability",
+      "source": "./plugins/sla-reporting",
+      "homepage": "https://github.com/cliveg/sre-agent-plugins-extras-test/tree/main/plugins/sla-reporting"
+    },
+    {
+      "name": "vm-migration-preassessment",
+      "description": "Orchestrates a governed AzVMTools Deep preflight through a private GitHub Actions runner and converts GO/NO-GO results into a scoped Azure VM migration change plan. Performs no migration actions.",
+      "author": {
+        "name": "Clive Graven"
+      },
+      "category": "Reliability",
+      "source": "./plugins/vm-migration-preassessment",
+      "homepage": "https://github.com/cliveg/sre-agent-plugins-extras-test/tree/main/plugins/vm-migration-preassessment"
+    },
+    {
+      "name": "wara-assessment",
+      "version": "0.2.0",
+      "description": "Runs Microsoft's Well-Architected Reliability Assessment (collector + analyzer) one scope at a time, including in restricted-egress SRE Agent sandboxes, and produces a provenance-tracked, prioritized findings report with month-over-month deltas. Read-only.",
+      "author": {
+        "name": "Clive Graven"
+      },
+      "category": "Reliability",
+      "source": "./plugins/wara-assessment",
+      "homepage": "https://github.com/cliveg/sre-agent-plugins-extras-test/tree/main/plugins/wara-assessment"
+    }
+  ]
+}

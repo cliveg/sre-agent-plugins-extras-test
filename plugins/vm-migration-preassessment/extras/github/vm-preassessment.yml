@@ -1,0 +1,218 @@
+name: Azure VM Pre-Assessment
+
+on:
+  workflow_dispatch:
+    inputs:
+      subscriptionId:
+        description: Azure subscription GUID
+        required: true
+        type: string
+      resourceGroup:
+        description: Resource group containing target VMs
+        required: true
+        type: string
+      scopeMode:
+        description: Assess a VM list or the complete resource group
+        required: true
+        type: choice
+        options:
+          - list
+          - resourceGroup
+      vmList:
+        description: Comma-separated VM names when scopeMode=list
+        required: false
+        type: string
+      newVmSize:
+        description: Planned target VM SKU
+        required: true
+        type: string
+      targetZone:
+        description: Planned target availability zone
+        required: true
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "3"
+      targetDiskController:
+        description: Planned target disk controller
+        required: true
+        default: NVMe
+        type: choice
+        options:
+          - NVMe
+          - SCSI
+      nvmeLayout:
+        description: Planned local NVMe layout
+        required: true
+        default: SingleDisk
+        type: choice
+        options:
+          - SingleDisk
+          - Stripe
+      nvmeAllocationUnitSize:
+        description: Planned Windows NVMe NTFS allocation unit
+        required: true
+        default: "4096"
+        type: choice
+        options:
+          - "4096"
+          - "8192"
+          - "16384"
+          - "32768"
+          - "65536"
+      targetSubnetId:
+        description: Optional full target subnet resource ID
+        required: false
+        type: string
+      allowPowerStateChanges:
+        description: Allow assessment to start and re-deallocate stopped VMs
+        required: true
+        default: false
+        type: boolean
+      azvmtoolsRef:
+        description: AzVMTools branch, tag, or commit
+        required: true
+        default: dcf72230d91c204154f2ddd5d78c36460cc766f5
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+  issues: write
+
+jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    environment: vm-preassessment
+    steps:
+      - name: Require a private operations repository
+        shell: bash
+        run: |
+          if [[ "${{ github.event.repository.private }}" != "true" ]]; then
+            echo "VM pre-assessment reports must run in a private repository."
+            exit 1
+          fi
+
+  # Both workflow logic and checked-out script content are pinned to the
+  # reviewed AzVMTools commit below. Update both pins together after validation.
+  assess:
+    needs: authorize
+    uses: cliveg/AzVMTools/.github/workflows/vm-preassessment-reusable.yml@dcf72230d91c204154f2ddd5d78c36460cc766f5
+    with:
+      subscriptionId: ${{ inputs.subscriptionId }}
+      resourceGroup: ${{ inputs.resourceGroup }}
+      scopeMode: ${{ inputs.scopeMode }}
+      vmList: ${{ inputs.vmList }}
+      newVmSize: ${{ inputs.newVmSize }}
+      targetZone: ${{ inputs.targetZone }}
+      targetDiskController: ${{ inputs.targetDiskController }}
+      nvmeLayout: ${{ inputs.nvmeLayout }}
+      nvmeAllocationUnitSize: ${{ fromJSON(inputs.nvmeAllocationUnitSize) }}
+      targetSubnetId: ${{ inputs.targetSubnetId }}
+      allowPowerStateChanges: ${{ inputs.allowPowerStateChanges }}
+      githubEnvironment: vm-preassessment
+      azvmtoolsRef: ${{ inputs.azvmtoolsRef }}
+    secrets:
+      azureClientId: ${{ secrets.AZURE_CLIENT_ID }}
+      azureTenantId: ${{ secrets.AZURE_TENANT_ID }}
+
+  publish-summary:
+    needs: assess
+    if: always() && needs.assess.outputs.artifactName != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download assessment report
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.assess.outputs.artifactName }}
+          path: assessment
+
+      - name: Create or update the assessment issue
+        uses: actions/github-script@v7
+        env:
+          ASSESSMENT_STATUS: ${{ needs.assess.outputs.assessmentStatus }}
+          GO_COUNT: ${{ needs.assess.outputs.goCount }}
+          NO_GO_COUNT: ${{ needs.assess.outputs.noGoCount }}
+          RESOURCE_GROUP: ${{ inputs.resourceGroup }}
+          NEW_VM_SIZE: ${{ inputs.newVmSize }}
+          TARGET_ZONE: ${{ inputs.targetZone }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const summary = JSON.parse(
+              fs.readFileSync(
+                path.join('assessment', 'assessment-summary.json'),
+                'utf8'
+              )
+            );
+            const labelName = 'vm-preassessment';
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: labelName
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: labelName,
+                color: '1d76db',
+                description: 'Azure VM migration pre-assessment'
+              });
+            }
+
+            const title =
+              `VM Pre-Assessment: ${process.env.RESOURCE_GROUP} -> ` +
+              `${process.env.NEW_VM_SIZE} / zone ${process.env.TARGET_ZONE}`;
+            const blockers = (summary.blockers || []).map((item) =>
+              `### ${item.vmName}\n` +
+              `- Issues: ${item.issues || 'None'}\n` +
+              `- Warnings: ${item.warnings || 'None'}`
+            ).join('\n\n');
+            const body =
+              `## Latest assessment\n\n` +
+              `- **Status:** ${process.env.ASSESSMENT_STATUS}\n` +
+              `- **GO:** ${process.env.GO_COUNT}\n` +
+              `- **NO-GO:** ${process.env.NO_GO_COUNT}\n` +
+              `- **Workflow run:** ${context.serverUrl}/` +
+              `${context.repo.owner}/${context.repo.repo}/actions/runs/` +
+              `${context.runId}\n\n` +
+              `## Blockers\n\n${blockers || 'No blockers were reported.'}\n\n` +
+              `> No migration actions were performed.\n\n` +
+              `Full reports are retained as the private workflow artifact ` +
+              `\`${{ needs.assess.outputs.artifactName }}\`.`;
+
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: labelName,
+                per_page: 100
+              }
+            );
+            const existing = issues.find(
+              (issue) => !issue.pull_request && issue.title === title
+            );
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: [labelName]
+              });
+            }

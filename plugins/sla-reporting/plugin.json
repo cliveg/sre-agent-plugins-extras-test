@@ -1,0 +1,24 @@
+{
+  "id": "sla-reporting",
+  "name": "SLA Reporting",
+  "version": "1.0.0",
+  "description": "Estimates Azure availability/SLA per region, service, and month from real-world Resource Health, renders an SLA service-credit heatmap, and lists Service Health incidents for context.",
+  "author": {
+    "name": "Clive Graven"
+  },
+  "category": "Reliability",
+  "keywords": ["sla", "availability", "reliability", "resource-health", "service-health", "azure"],
+  "skills": [
+    {
+      "name": "sla-availability",
+      "path": "skills/sla-availability/SKILL.md",
+      "description": "Deterministic availability computation: exact Resource Graph queries plus one Python script that computes per-cell availability and renders the heatmap PNG.",
+      "tools": [
+        "RunAzCliReadCommands",
+        "GetAzCliHelp",
+        "QueryLogAnalyticsByWorkspaceId",
+        "ExecutePythonCode"
+      ]
+    }
+  ]
+}

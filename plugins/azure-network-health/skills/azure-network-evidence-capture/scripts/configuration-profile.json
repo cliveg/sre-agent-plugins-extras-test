@@ -1,0 +1,551 @@
+{
+  "base": {
+    "id": "text",
+    "kind": "text",
+    "location": "text",
+    "name": "text",
+    "sku": {
+      "capacity": "number",
+      "name": "text",
+      "tier": "text"
+    },
+    "systemData": {
+      "createdAt": "text",
+      "createdBy": "text",
+      "createdByType": "text",
+      "lastModifiedAt": "text",
+      "lastModifiedBy": "text",
+      "lastModifiedByType": "text"
+    },
+    "type": "text"
+  },
+  "children": {
+    "ampls": [
+      "ampls-scoped-list"
+    ],
+    "nsp": [
+      "nsp-profiles-list",
+      "nsp-associations-list"
+    ],
+    "nsp-profiles": [
+      "nsp-rules-list"
+    ]
+  },
+  "nativeCatalogSha256": "db86357e95882644672a510097b31410ecf56d2a5a3fbfda0f34af4227b359cc",
+  "operations": {
+    "acr-get": [
+      "get",
+      "acr",
+      null
+    ],
+    "acr-list": [
+      "list",
+      "acr",
+      null
+    ],
+    "ampls-get": [
+      "get",
+      "ampls",
+      null
+    ],
+    "ampls-list": [
+      "list",
+      "ampls",
+      null
+    ],
+    "ampls-scoped-get": [
+      "get",
+      "ampls-scoped",
+      null
+    ],
+    "ampls-scoped-list": [
+      "list",
+      "ampls-scoped",
+      "scopedResources"
+    ],
+    "keyvault-get": [
+      "get",
+      "keyvault",
+      null
+    ],
+    "keyvault-list": [
+      "list",
+      "keyvault",
+      null
+    ],
+    "loganalytics-get": [
+      "get",
+      "loganalytics",
+      null
+    ],
+    "loganalytics-list": [
+      "list",
+      "loganalytics",
+      null
+    ],
+    "nsp-associations-get": [
+      "get",
+      "nsp-associations",
+      null
+    ],
+    "nsp-associations-list": [
+      "list",
+      "nsp-associations",
+      "resourceAssociations"
+    ],
+    "nsp-get": [
+      "get",
+      "nsp",
+      null
+    ],
+    "nsp-list": [
+      "list",
+      "nsp",
+      null
+    ],
+    "nsp-profiles-get": [
+      "get",
+      "nsp-profiles",
+      null
+    ],
+    "nsp-profiles-list": [
+      "list",
+      "nsp-profiles",
+      "profiles"
+    ],
+    "nsp-rules-get": [
+      "get",
+      "nsp-rules",
+      null
+    ],
+    "nsp-rules-list": [
+      "list",
+      "nsp-rules",
+      "accessRules"
+    ],
+    "storage-get": [
+      "get",
+      "storage",
+      null
+    ],
+    "storage-list": [
+      "list",
+      "storage",
+      null
+    ]
+  },
+  "profileId": "reviewed-azure-configuration",
+  "profileVersion": "1.0.0",
+  "properties": {
+    "acr": {
+      "adminUserEnabled": "bool",
+      "anonymousPullEnabled": "bool",
+      "dataEndpointEnabled": "bool",
+      "dataEndpointHostNames": [
+        "text"
+      ],
+      "encryption": {
+        "keyVaultProperties": {
+          "identity": "text",
+          "keyIdentifier": "text"
+        },
+        "status": "text"
+      },
+      "loginServer": "text",
+      "networkRuleBypassOptions": "text",
+      "networkRuleSet": {
+        "defaultAction": "text",
+        "ipRules": [
+          {
+            "action": "text",
+            "iPAddressOrRange": "text",
+            "value": "text"
+          }
+        ],
+        "virtualNetworkRules": [
+          {
+            "action": "text",
+            "id": "text"
+          }
+        ]
+      },
+      "policies": {
+        "azureADAuthenticationAsArmPolicy": {
+          "status": "text"
+        },
+        "exportPolicy": {
+          "status": "text"
+        },
+        "quarantinePolicy": {
+          "status": "text"
+        },
+        "retentionPolicy": {
+          "days": "integer",
+          "lastUpdatedTime": "text",
+          "status": "text"
+        },
+        "softDeletePolicy": {
+          "retentionDays": "integer",
+          "status": "text"
+        },
+        "trustPolicy": {
+          "status": "text",
+          "type": "text"
+        }
+      },
+      "privateEndpointConnections": [
+        {
+          "id": "text",
+          "properties": {
+            "groupIds": [
+              "text"
+            ],
+            "privateEndpoint": {
+              "id": "text"
+            },
+            "privateLinkServiceConnectionState": {
+              "actionsRequired": "text",
+              "status": "text"
+            },
+            "provisioningState": "text"
+          }
+        }
+      ],
+      "provisioningState": "text",
+      "publicNetworkAccess": "text",
+      "zoneRedundancy": "text"
+    },
+    "ampls": {
+      "accessModeSettings": {
+        "exclusions": [
+          {
+            "ingestionAccessMode": "text",
+            "privateEndpointConnectionName": "text",
+            "queryAccessMode": "text"
+          }
+        ],
+        "ingestionAccessMode": "text",
+        "queryAccessMode": "text"
+      },
+      "privateEndpointConnections": [
+        {
+          "id": "text",
+          "properties": {
+            "groupIds": [
+              "text"
+            ],
+            "privateEndpoint": {
+              "id": "text"
+            },
+            "privateLinkServiceConnectionState": {
+              "actionsRequired": "text",
+              "status": "text"
+            },
+            "provisioningState": "text"
+          }
+        }
+      ],
+      "provisioningState": "text"
+    },
+    "ampls-scoped": {
+      "linkedResourceId": "text",
+      "provisioningState": "text"
+    },
+    "keyvault": {
+      "accessPolicies": [
+        {
+          "applicationId": "text",
+          "objectId": "text",
+          "permissions": {
+            "certificates": [
+              "text"
+            ],
+            "keys": [
+              "text"
+            ],
+            "secrets": [
+              "text"
+            ],
+            "storage": [
+              "text"
+            ]
+          },
+          "tenantId": "text"
+        }
+      ],
+      "enablePurgeProtection": "bool",
+      "enableRbacAuthorization": "bool",
+      "enableSoftDelete": "bool",
+      "enabledForDeployment": "bool",
+      "enabledForDiskEncryption": "bool",
+      "enabledForTemplateDeployment": "bool",
+      "networkAcls": {
+        "bypass": "text",
+        "defaultAction": "text",
+        "ipRules": [
+          {
+            "action": "text",
+            "value": "text"
+          }
+        ],
+        "virtualNetworkRules": [
+          {
+            "action": "text",
+            "id": "text",
+            "ignoreMissingVnetServiceEndpoint": "bool",
+            "state": "text"
+          }
+        ]
+      },
+      "privateEndpointConnections": [
+        {
+          "id": "text",
+          "properties": {
+            "groupIds": [
+              "text"
+            ],
+            "privateEndpoint": {
+              "id": "text"
+            },
+            "privateLinkServiceConnectionState": {
+              "actionsRequired": "text",
+              "status": "text"
+            },
+            "provisioningState": "text"
+          }
+        }
+      ],
+      "provisioningState": "text",
+      "publicNetworkAccess": "text",
+      "sku": {
+        "family": "text",
+        "name": "text"
+      },
+      "softDeleteRetentionInDays": "integer",
+      "tenantId": "text",
+      "vaultUri": "text"
+    },
+    "loganalytics": {
+      "features": {
+        "clusterResourceId": "text",
+        "disableLocalAuth": "bool",
+        "enableDataExport": "bool",
+        "enableLogAccessUsingOnlyResourcePermissions": "bool",
+        "immediatePurgeDataOn30Days": "bool"
+      },
+      "forceCmkForQuery": "bool",
+      "privateLinkScopedResources": [
+        {
+          "resourceId": "text",
+          "scopeId": "text"
+        }
+      ],
+      "provisioningState": "text",
+      "publicNetworkAccessForIngestion": "text",
+      "publicNetworkAccessForQuery": "text",
+      "retentionInDays": "integer",
+      "sku": {
+        "capacityReservationLevel": "integer",
+        "name": "text"
+      },
+      "workspaceCapping": {
+        "dailyQuotaGb": "number",
+        "dataIngestionStatus": "text",
+        "quotaNextResetTime": "text"
+      }
+    },
+    "nsp": {
+      "perimeterGuid": "text",
+      "provisioningState": "text"
+    },
+    "nsp-associations": {
+      "accessMode": "text",
+      "hasProvisioningIssues": "bool",
+      "privateLinkResource": {
+        "id": "text"
+      },
+      "profile": {
+        "id": "text"
+      },
+      "provisioningState": "text"
+    },
+    "nsp-profiles": {
+      "provisioningState": "text"
+    },
+    "nsp-rules": {
+      "addressPrefixes": [
+        "text"
+      ],
+      "direction": "text",
+      "fullyQualifiedDomainNames": [
+        "text"
+      ],
+      "networkSecurityPerimeters": [
+        {
+          "id": "text"
+        }
+      ],
+      "provisioningState": "text",
+      "subscriptions": [
+        {
+          "id": "text"
+        }
+      ]
+    },
+    "storage": {
+      "accessTier": "text",
+      "allowBlobPublicAccess": "bool",
+      "allowCrossTenantReplication": "bool",
+      "allowSharedKeyAccess": "bool",
+      "creationTime": "text",
+      "defaultToOAuthAuthentication": "bool",
+      "encryption": {
+        "keySource": "text",
+        "keyvaultproperties": {
+          "keyname": "text",
+          "keyvaulturi": "text",
+          "keyversion": "text"
+        },
+        "requireInfrastructureEncryption": "bool",
+        "services": {
+          "blob": {
+            "enabled": "bool",
+            "keyType": "text",
+            "lastEnabledTime": "text"
+          },
+          "file": {
+            "enabled": "bool",
+            "keyType": "text",
+            "lastEnabledTime": "text"
+          },
+          "queue": {
+            "enabled": "bool",
+            "keyType": "text",
+            "lastEnabledTime": "text"
+          },
+          "table": {
+            "enabled": "bool",
+            "keyType": "text",
+            "lastEnabledTime": "text"
+          }
+        }
+      },
+      "isHnsEnabled": "bool",
+      "isLocalUserEnabled": "bool",
+      "isNfsV3Enabled": "bool",
+      "largeFileSharesState": "text",
+      "minimumTlsVersion": "text",
+      "networkAcls": {
+        "bypass": "text",
+        "defaultAction": "text",
+        "ipRules": [
+          {
+            "action": "text",
+            "value": "text"
+          }
+        ],
+        "ipv6Rules": [
+          {
+            "action": "text",
+            "value": "text"
+          }
+        ],
+        "resourceAccessRules": [
+          {
+            "resourceId": "text",
+            "tenantId": "text"
+          }
+        ],
+        "virtualNetworkRules": [
+          {
+            "action": "text",
+            "id": "text",
+            "ignoreMissingVnetServiceEndpoint": "bool",
+            "state": "text"
+          }
+        ]
+      },
+      "primaryLocation": "text",
+      "privateEndpointConnections": [
+        {
+          "id": "text",
+          "properties": {
+            "groupIds": [
+              "text"
+            ],
+            "privateEndpoint": {
+              "id": "text"
+            },
+            "privateLinkServiceConnectionState": {
+              "actionsRequired": "text",
+              "status": "text"
+            },
+            "provisioningState": "text"
+          }
+        }
+      ],
+      "provisioningState": "text",
+      "publicNetworkAccess": "text",
+      "routingPreference": {
+        "publishInternetEndpoints": "bool",
+        "publishMicrosoftEndpoints": "bool",
+        "routingChoice": "text"
+      },
+      "secondaryLocation": "text",
+      "statusOfPrimary": "text",
+      "statusOfSecondary": "text",
+      "supportsHttpsTrafficOnly": "bool"
+    }
+  },
+  "roots": [
+    "storage",
+    "keyvault",
+    "acr",
+    "loganalytics",
+    "nsp",
+    "ampls"
+  ],
+  "schemaVersion": "1.0.0",
+  "types": {
+    "acr": [
+      "Microsoft.ContainerRegistry/registries",
+      "2023-07-01"
+    ],
+    "ampls": [
+      "Microsoft.Insights/privateLinkScopes",
+      "2021-07-01-preview"
+    ],
+    "ampls-scoped": [
+      "Microsoft.Insights/privateLinkScopes/scopedResources",
+      "2021-07-01-preview"
+    ],
+    "keyvault": [
+      "Microsoft.KeyVault/vaults",
+      "2023-07-01"
+    ],
+    "loganalytics": [
+      "Microsoft.OperationalInsights/workspaces",
+      "2023-09-01"
+    ],
+    "nsp": [
+      "Microsoft.Network/networkSecurityPerimeters",
+      "2024-07-01"
+    ],
+    "nsp-associations": [
+      "Microsoft.Network/networkSecurityPerimeters/resourceAssociations",
+      "2024-07-01"
+    ],
+    "nsp-profiles": [
+      "Microsoft.Network/networkSecurityPerimeters/profiles",
+      "2024-07-01"
+    ],
+    "nsp-rules": [
+      "Microsoft.Network/networkSecurityPerimeters/profiles/accessRules",
+      "2024-07-01"
+    ],
+    "storage": [
+      "Microsoft.Storage/storageAccounts",
+      "2023-05-01"
+    ]
+  }
+}

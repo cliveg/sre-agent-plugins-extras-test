@@ -1,0 +1,35 @@
+{
+  "id": "azure-tag-governance",
+  "name": "Azure Tag Governance",
+  "version": "0.1.0",
+  "description": "Builds a provenance-aware Azure tag and basic naming governance profile from read-only evidence, evaluates resources deterministically, and publishes immutable assessment bundles. It does not change Azure resources.",
+  "author": {
+    "name": "Clive Graven"
+  },
+  "category": "Governance",
+  "keywords": [
+    "azure",
+    "tags",
+    "governance",
+    "naming",
+    "compliance",
+    "resource-graph",
+    "assessment"
+  ],
+  "skills": [
+    {
+      "name": "azure-tag-governance",
+      "path": "skills/azure-tag-governance/SKILL.md",
+      "description": "Runs a read-only, evidence-backed Azure tag and naming assessment, maintains a versioned governance profile, and publishes deterministic run artifacts.",
+      "tools": [
+        "RunInTerminal",
+        "ReadFile",
+        "CreateFile",
+        "SaveFileToBlob",
+        "SearchMemory",
+        "RunAzCliReadCommands",
+        "QueryLogAnalyticsByWorkspaceId"
+      ]
+    }
+  ]
+}

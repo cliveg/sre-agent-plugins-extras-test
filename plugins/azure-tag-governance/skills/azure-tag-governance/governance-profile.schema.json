@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:azure-tag-governance:profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profileId",
+    "profileVersion",
+    "generatedAt",
+    "scopeId",
+    "rules",
+    "candidates",
+    "exceptions",
+    "applicability"
+  ],
+  "properties": {
+    "profileId": {"type": "string", "minLength": 1},
+    "profileVersion": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "scopeId": {"type": "string", "minLength": 1},
+    "rules": {"type": "array", "items": {"$ref": "#/$defs/rule"}},
+    "candidates": {"type": "array", "items": {"$ref": "#/$defs/candidate"}},
+    "exceptions": {"type": "array", "items": {"$ref": "#/$defs/exception"}},
+    "applicability": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["resourceType", "taggable", "namingAssessable"],
+        "properties": {
+          "resourceType": {"type": "string"},
+          "taggable": {"type": "boolean"},
+          "namingAssessable": {"type": "boolean"},
+          "reason": {"type": "string"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "status",
+        "scope",
+        "evidenceClass",
+        "createdAt",
+        "expiresAt",
+        "sourceCandidateId"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"enum": ["requiredTag", "allowedValues", "valuePattern", "namingPattern"]},
+        "status": {"enum": ["authoritative", "stale"]},
+        "scope": {"type": "object"},
+        "tagKey": {"type": "string"},
+        "allowedValues": {"type": "array", "items": {"type": "string"}},
+        "pattern": {"type": "string"},
+        "normalization": {"type": "object"},
+        "multiValue": {"type": ["object", "null"]},
+        "evidenceClass": {"enum": ["DECLARED", "INFERRED"]},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "expiresAt": {"type": "string", "format": "date-time"},
+        "sourceCandidateId": {"type": "string"},
+        "decision": {"type": "object"}
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "required": ["id", "kind", "scope", "evidenceClass", "evidence"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"type": "string"},
+        "scope": {"type": "object"},
+        "tagKey": {"type": "string"},
+        "pattern": {"type": "string"},
+        "evidenceClass": {"const": "INFERRED"},
+        "evidence": {"type": "object"}
+      }
+    },
+    "exception": {
+      "type": "object",
+      "required": [
+        "id",
+        "owner",
+        "rationale",
+        "approvalEvidence",
+        "scope",
+        "ruleIds",
+        "resourceIds",
+        "createdAt",
+        "expiresAt",
+        "status"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "owner": {"type": "string"},
+        "rationale": {"type": "string"},
+        "approvalEvidence": {"type": "string"},
+        "scope": {"type": "object"},
+        "ruleIds": {"type": "array", "items": {"type": "string"}},
+        "resourceIds": {"type": "array", "items": {"type": "string"}},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "expiresAt": {"type": "string", "format": "date-time"},
+        "status": {"enum": ["active", "expired", "revoked"]}
+      }
+    }
+  }
+}

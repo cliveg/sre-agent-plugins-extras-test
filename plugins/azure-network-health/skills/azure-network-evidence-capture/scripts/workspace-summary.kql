@@ -1,0 +1,2 @@
+| summarize Records = count(), Earliest = min(TimeGenerated), Latest = max(TimeGenerated),
+    WithCaller = countif(isnotempty(column_ifexists('Caller', ''))) by Category = tostring(CategoryValue)

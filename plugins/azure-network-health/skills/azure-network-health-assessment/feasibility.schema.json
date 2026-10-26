@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Azure Network Health Increment 0 proof",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runId", "selectedSubscription", "collectionTimestamp", "capabilityVersion", "readOutcome", "dataHandling", "supportingAssets"],
+  "properties": {
+    "schemaVersion": {"const": "0.0.1"},
+    "runId": {"type": "string", "format": "uuid"},
+    "selectedSubscription": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identifier", "handling"],
+      "properties": {
+        "identifier": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "handling": {"const": "sha256-pseudonymized"}
+      }
+    },
+    "collectionTimestamp": {"type": "string", "format": "utc-date-time"},
+    "capabilityVersion": {"const": "0.0.1"},
+    "readOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operationId", "status"],
+      "properties": {
+        "operationId": {"const": "subscription-context"},
+        "status": {"enum": ["succeeded", "permissionDenied", "unavailable", "failed"]},
+        "returnedScopeMatches": {"const": true},
+        "errorCode": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,79}$"}
+      },
+      "if": {"properties": {"status": {"const": "succeeded"}}},
+      "then": {"required": ["returnedScopeMatches"], "not": {"required": ["errorCode"]}},
+      "else": {"required": ["errorCode"], "not": {"required": ["returnedScopeMatches"]}}
+    },
+    "dataHandling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceSensitivity", "redactionState", "rawResponsesPersisted", "retentionDecision", "omittedSensitiveProperties"],
+      "properties": {
+        "sourceSensitivity": {"const": "internal"},
+        "redactionState": {"const": "pseudonymized"},
+        "rawResponsesPersisted": {"const": false},
+        "retentionDecision": {"const": "prototype-run-only-no-external-publication"},
+        "omittedSensitiveProperties": {"const": ["subscriptionName", "tenantId", "tags", "resourcePayloads", "credentials"]}
+      }
+    },
+    "supportingAssets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["referenceMarker", "schemaSha256", "runtimeSha256"],
+      "properties": {
+        "referenceMarker": {"const": "AZURE-NETWORK-HEALTH-INCREMENT-0-REFERENCE-V1"},
+        "schemaSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "runtimeSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    }
+  }
+}

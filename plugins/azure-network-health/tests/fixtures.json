@@ -1,0 +1,36 @@
+{
+  "subscriptionId": "00000000-0000-4000-8000-000000000002",
+  "runId": "00000000-0000-4000-8000-000000000001",
+  "timestamp": "2026-10-07T21:00:00Z",
+  "resources": {
+    "vnets": [
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/alpha", "name": "alpha", "properties": {"addressPrefixes": ["10.0.0.0/16"], "subnetCount": 2, "peeringCount": 1}},
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/beta", "name": "beta", "properties": {"addressPrefixes": ["10.0.1.0/24"], "subnetCount": 1, "peeringCount": 0}}
+    ],
+    "subnets": [
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/alpha/subnets/app", "name": "app", "parentId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/alpha", "properties": {"addressPrefix": "10.0.2.0/24", "networkSecurityGroupKnown": true, "networkSecurityGroupId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/networkSecurityGroups/app", "routeTableKnown": true, "routeTableId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/routeTables/app"}},
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/alpha/subnets/management", "name": "management", "parentId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/alpha", "properties": {"addressPrefix": "10.0.3.0/24", "networkSecurityGroupKnown": true, "networkSecurityGroupId": null, "routeTableKnown": true, "routeTableId": null}},
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/beta/subnets/app", "name": "app", "parentId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/beta", "properties": {"addressPrefix": "10.0.1.0/26", "networkSecurityGroupKnown": false, "routeTableKnown": false}}
+    ],
+    "peerings": [
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/alpha/virtualNetworkPeerings/external", "name": "external", "parentId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/alpha", "properties": {"remoteVNetId": "/subscriptions/00000000-0000-4000-8000-000000000003/resourceGroups/shared/providers/Microsoft.Network/virtualNetworks/hub", "peeringState": "Disconnected", "provisioningState": "Succeeded", "allowVirtualNetworkAccess": true}}
+    ],
+    "route-tables": [
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/routeTables/app", "name": "app", "properties": {"routeCount": 2, "disableBgpRoutePropagation": false}}
+    ],
+    "routes": [
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/routeTables/app/routes/default", "name": "default", "parentId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/routeTables/app", "properties": {"addressPrefix": "0.0.0.0/0", "nextHopType": "VirtualAppliance", "nextHopIpAddress": "10.0.0.4"}},
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/routeTables/app/routes/bad", "name": "bad", "parentId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/routeTables/app", "properties": {"addressPrefix": "10.2.0.0/16", "nextHopType": "VirtualAppliance", "nextHopIpAddress": "not-an-ip"}}
+    ],
+    "nsgs": [
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/networkSecurityGroups/app", "name": "app", "properties": {"customRuleCount": 1, "defaultRuleCount": 1}}
+    ],
+    "nsg-rules": [
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/networkSecurityGroups/app/securityRules/ssh", "name": "ssh", "parentId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/networkSecurityGroups/app", "properties": {"isDefault": false, "priority": 100, "direction": "Inbound", "access": "Allow", "protocol": "Tcp", "sourceAddressPrefix": "*", "destinationAddressPrefix": "*", "destinationPortRange": "22"}},
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/networkSecurityGroups/app/defaultSecurityRules/deny", "name": "deny", "parentId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/networkSecurityGroups/app", "properties": {"isDefault": true, "priority": 65500, "direction": "Inbound", "access": "Deny", "protocol": "*", "sourceAddressPrefix": "*", "destinationAddressPrefix": "*", "destinationPortRange": "*"}}
+    ],
+    "ip-attachments": [
+      {"id": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/networkInterfaces/app/ipConfigurations/primary", "name": "primary", "parentId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/networkInterfaces/app", "properties": {"subnetId": "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/fixture/providers/Microsoft.Network/virtualNetworks/alpha/subnets/app", "privateIPAddress": "10.0.2.4", "ipConfigurationCount": 1}}
+    ]
+  }
+}

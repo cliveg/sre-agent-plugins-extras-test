@@ -1,0 +1,31 @@
+| extend _claims = todynamic(column_ifexists('Claims_d', dynamic({}))),
+    _properties = todynamic(column_ifexists('Properties_d', dynamic({})))
+| extend _health = parse_json(tostring(_properties.eventProperties))
+| project TimeGenerated,
+    EventId = tostring(EventDataId),
+    SubmittedTime = tostring(column_ifexists('EventSubmissionTimestamp', datetime(null))),
+    IngestedTime = tostring(ingestion_time()),
+    AssessedSubscription = tostring(SubscriptionId),
+    Category = tostring(CategoryValue),
+    Caller = tostring(column_ifexists('Caller', '')),
+    CorrelationId = tostring(column_ifexists('CorrelationId', '')),
+    OperationId = tostring(column_ifexists('OperationId', '')),
+    Operation = tostring(column_ifexists('OperationNameValue', '')),
+    Status = tostring(column_ifexists('ActivityStatusValue', '')),
+    ResourceId = tostring(column_ifexists('_ResourceId', column_ifexists('ResourceId', ''))),
+    ResourceGroup = tostring(column_ifexists('ResourceGroup', '')),
+    AppId = tostring(_claims.appid),
+    PrincipalId = tostring(_claims['http://schemas.microsoft.com/identity/claims/objectidentifier']),
+    HealthCause = tostring(_health.cause),
+    CurrentHealthStatus = tostring(_health.currentHealthStatus),
+    PreviousHealthStatus = tostring(_health.previousHealthStatus),
+    HealthType = tostring(_health.type)
+| summarize Copies = count() by TimeGenerated, EventId, SubmittedTime, IngestedTime,
+    AssessedSubscription, Category, Caller, CorrelationId, OperationId, Operation, Status,
+    ResourceId, ResourceGroup, AppId, PrincipalId, HealthCause, CurrentHealthStatus, PreviousHealthStatus, HealthType
+| extend RowKey = hash_sha256(tostring(pack_array(TimeGenerated, EventId, SubmittedTime, IngestedTime,
+    AssessedSubscription, Category, Caller, CorrelationId, OperationId, Operation, Status,
+    ResourceId, ResourceGroup, AppId, PrincipalId, HealthCause, CurrentHealthStatus, PreviousHealthStatus, HealthType)))
+| where __AFTER__
+| order by TimeGenerated asc, RowKey asc
+| take 501

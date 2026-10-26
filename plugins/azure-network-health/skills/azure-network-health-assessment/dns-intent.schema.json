@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:azure-network-health:dns-intent:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["intentVersion", "runId", "subscriptionId", "source", "cohorts"],
+  "properties": {
+    "intentVersion": {"const": "1.0.0"},
+    "runId": {"type": "string", "format": "uuid"},
+    "subscriptionId": {"type": "string", "format": "uuid"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["documentId", "revision", "owner", "declaredAt", "reviewedAt"],
+      "properties": {
+        "documentId": {"type": "string", "minLength": 1, "maxLength": 256},
+        "revision": {"type": "string", "minLength": 1, "maxLength": 128},
+        "owner": {"type": "string", "minLength": 1, "maxLength": 256},
+        "declaredAt": {"type": "string", "format": "utc-date-time"},
+        "reviewedAt": {"type": "string", "format": "utc-date-time"}
+      }
+    },
+    "cohorts": {
+      "type": "array", "minItems": 1, "maxItems": 100,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["cohortId", "stage", "vnetIds", "dnsMode", "requiredRulesetIds", "requiredInboundEndpointIds"],
+        "properties": {
+          "cohortId": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$"},
+          "stage": {"enum": ["planned", "in-progress", "required-now", "excluded"]},
+          "vnetIds": {"type": "array", "minItems": 1, "maxItems": 500, "uniqueItems": true, "items": {"type": "string"}},
+          "dnsMode": {"enum": ["unspecified", "custom-configured", "azure-provided-configured"]},
+          "requiredRulesetIds": {"type": "array", "maxItems": 20, "uniqueItems": true, "items": {"type": "string"}},
+          "requiredInboundEndpointIds": {"type": "array", "maxItems": 20, "uniqueItems": true, "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

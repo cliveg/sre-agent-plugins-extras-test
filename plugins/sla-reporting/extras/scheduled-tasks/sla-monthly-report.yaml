@@ -1,0 +1,318 @@
+# ============================================================
+# Scheduled Task: Monthly Azure SLA / Availability Report
+# Generates an estimated availability report per region, service
+# category, and month from Azure Resource Health + Service Health
+# signals, and flags any cell below the 99.9% Azure VM SLA threshold.
+# ============================================================
+
+api_version: azuresre.ai/v1
+kind: ScheduledTask
+metadata:
+  name: sla-monthly-report
+spec:
+  name: sla-monthly-report
+  description: >
+    Monthly Azure availability/SLA estimation. Uses Azure Resource Graph
+    (HealthResources, servicehealthresources) and the Activity Log to estimate
+    availability per region x service category x month, and reports the Service
+    Health incidents behind any dips. Read-only.
+  cron: "0 6 1 * *"    # 06:00 UTC on the 1st of each month
+  agent_prompt: |
+    Generate the monthly Azure SLA / availability report.
+
+    Use the sla-availability skill end to end:
+
+    1. SearchMemory for "SLA methodology" and "SLA thresholds" and follow them.
+    2. Resolve scope: all enabled subscriptions and every region containing an
+       in-scope resource (Compute, SQL DB, Web Apps, Storage).
+    3. Run the HealthResources and servicehealthresources queries via
+       `az graph query`, and pull Resource/Service Health events from the
+       Activity Log (QueryLogAnalyticsByWorkspaceId against the Log Analytics
+       workspace that receives ResourceHealth/ServiceHealth). If a
+       `WORKSPACE OVERRIDE:` line is present below, use that workspace; otherwise
+       use the agent's Log Analytics connector, or resolve it from the
+       subscription's Activity Log diagnostic export, for the last 12 months.
+    4. With ExecutePythonCode, compute estimated availability % per region x
+       service category x month from REAL-WORLD Resource Health only
+       (fleet-weighted Unavailable/Degraded events). Service Health
+       `ServiceIssue` incidents are reported for context in Sections 2 & 3 but
+       do NOT reduce the availability percentage (Guil's approach).
+    5. Classify each cell by Azure VM SLA service-credit tier (>=99.9% green /
+       no credit, <99.9% yellow / 10% credit, <99% orange / 25% credit, <95%
+       red / 100% credit, N/A when no resources of that type exist in the
+       region). 100% is always green.
+    6. Produce the Markdown report (SLA Overview, Incidents & Alerts for the
+       last month, Health Timeline, Heatmap, Impacted Resource Detail, and the
+       Accuracy validation section).
+    7. Impacted Resource Detail (Section 5): the script prints the TOP 10
+       impacted resources by total downtime and writes a downloadable CSV of
+       ALL impacted resources (name, resource id, resource group, subscription
+       id, reason/cause, detailed reason title, events, impact start, impact
+       end, duration in minutes, and connected incident id). ATTACH that CSV
+       (sla_impacted_resources.csv, path printed by the script) to the report
+       alongside the heatmap PNG.
+    8. Accuracy rubberduck (Step 5b -> Section 5a): cross-check each of the Top
+       10 against utilization/availability metrics for the impact window
+       (VmAvailabilityMetric and Percentage CPU for VMs; cpu/dtu and
+       successful connections for SQL; Requests/Http5xx for Web Apps;
+       Availability/Transactions for Storage). A genuinely down resource cannot
+       serve traffic, so if a resource was clearly up and serving during its
+       claimed impact window, mark it Contradicted and SAY SO transparently in
+       Section 5a (do not silently keep it). Remove only confirmed customer-off
+       false positives from totals; flagged-but-kept rows stay with a
+       disclosure note.
+
+    Open the report with the estimation disclaimer. Explicitly list every cell
+    below 99.9% and link it to the resource-health events that drove the
+    downtime. Include the reporting window, subscription scope, and run
+    timestamp.
+
+    If NO cell is below 99.9%, state: "All in-scope regions and services met
+    the 99.9% estimated availability target (no service credit due) for the
+    reporting window."
+
+    REPORT WINDOW — show only months with measured data:
+
+    Query the HistoryStart boundary from the Activity Log FIRST. Then set
+    REPORT_MONTHS so the report window starts at HistoryStart and ends at the
+    current month. Do NOT show months before HistoryStart — they have no data
+    and showing them as 100% is misleading. If HistoryStart is 3 months ago,
+    show 3 months. As history accrues, the window grows automatically.
+
+    CRITICAL — Step 4 Activity Log query corrections (June 2026 learnings):
+
+    A. HealthResources (Step 2) is CURRENT-STATE only — it cannot see historical
+       outages that have since recovered. The Activity Log in the centralized
+       workspace is the ONLY source for historical per-resource health events.
+       Always run Step 4 and merge its unhealthy counts into the Step 5 script
+       input (health_rows). Do NOT rely on HealthResources alone.
+
+    B. When extracting resource type from _ResourceId in KQL, use `contains`
+       (substring match) NOT `has` (whole-term match) in the ServiceCategory
+       case statement. KQL `has` requires exact term boundaries, so
+       `'microsoft.compute/virtualmachines' has 'virtualmachine'` is FALSE
+       because the term is 'virtualmachines' not 'virtualmachine'. Use:
+       ```
+       | extend ServiceCategory = case(
+           resType contains 'virtualmachine', 'Compute',
+           resType startswith 'microsoft.sql/', 'SQL DB',
+           resType startswith 'microsoft.web/', 'Web Apps',
+           resType contains 'storageaccounts', 'Storage', 'Other')
+       ```
+
+    C. The Activity Log `AzureActivity` table does NOT have a `location` column
+       for Resource Health events. Derive the resource type from _ResourceId
+       path segments, and resolve location by running a separate Resource Graph
+       query: `Resources | where type in~ (...) | summarize count() by
+       subscriptionId, location` — then map Activity Log events via
+       subscriptionId to region using PROPORTIONAL splitting (allocate events
+       to each region proportional to the subscription's resource count in
+       that region).
+
+    D. The corrected Step 4 KQL query for the Activity Log is:
+       ```kql
+       AzureActivity
+       | where CategoryValue == "ResourceHealth"
+       | where TimeGenerated >= ago(365d)
+       | extend parsed = parse_json(Properties)
+       | extend availState = tostring(parsed.currentHealthStatus)
+       | where availState in ("Unavailable", "Degraded")
+       | extend resId = tolower(_ResourceId)
+       | extend subId = tolower(tostring(split(resId, "/")[2]))
+       | where subId in ("<sub1>", "<sub2>", ...)
+       | extend segments = split(resId, "/")
+       | extend resType = strcat(tostring(segments[6]), "/", tostring(segments[7]))
+       | where resType in ("microsoft.compute/virtualmachines",
+           "microsoft.compute/virtualmachinescalesets",
+           "microsoft.sql/servers", "microsoft.sql/managedinstances",
+           "microsoft.web/sites", "microsoft.web/serverfarms",
+           "microsoft.storage/storageaccounts")
+       | extend ServiceCategory = case(
+           resType contains "virtualmachine", "Compute",
+           resType startswith "microsoft.sql/", "SQL DB",
+           resType startswith "microsoft.web/", "Web Apps",
+           resType contains "storageaccounts", "Storage", "Other")
+       | extend cause = tostring(parsed.cause)
+       | extend mo = format_datetime(TimeGenerated, "yyyy-MM")
+       | where cause != "UserInitiated"
+       | summarize UnhealthyEvents=count(), UniqueResources=dcount(resId) by mo, ServiceCategory, subId
+       | order by mo asc, ServiceCategory asc
+       ```
+       Filter out cause == "UserInitiated" (intentional user shutdowns are not
+       outages). Include PlatformInitiated and Unknown causes.
+
+    E. Merge Activity Log unhealthy counts into Step 5: for each
+       (month, ServiceCategory, region) cell, add the Activity Log
+       UniqueResources count to the unhealthy tally (mapped to region via
+       the sub->region Resource Graph lookup with PROPORTIONAL splitting).
+       This supplements the HealthResources current-state snapshot with
+       historical events.
+
+    F. If the workspace override is unreachable (e.g. agent MI lacks Log
+       Analytics Reader), fall back to the agent's connector workspace but
+       NOTE this prominently in the report — the connector workspace may have
+       limited auditing categories enabled vs the centralized workspace.
+
+    ────────────────────────────────────────────────────────────
+    STEP 4c — DETAILED CAUSE CAPTURE (June 2026 v2 improvement)
+    ────────────────────────────────────────────────────────────
+
+    Azure Resource Health emits PAIRED events per state transition:
+    - "Active" event: often cause="Unknown", title="Unknown" (first signal)
+    - "Updated" event: contains the REAL cause and title (e.g.
+      cause="PlatformInitiated", title="Remote disk disconnected")
+    - "Resolved" event: usually cause="Unknown"
+
+    To capture the human-readable title (shown in Azure Portal) and avoid
+    false "Unknown" entries from UserInitiated pairs:
+
+    1. Use full `let` subqueries for ALL workspaces (do NOT use simplified
+       inline `where cause != "UserInitiated"`; it leaks Active events
+       with cause="Unknown" that are paired with UserInitiated Updated events).
+
+    2. Add a `resolvedTitle` lookup alongside `resolvedCause`:
+       ```kql
+       let resolvedTitle = AzureActivity
+       | where CategoryValue == "ResourceHealth"
+       | where TimeGenerated >= ago(365d)
+       | where CorrelationId !in (userInitCorrelations)
+       | extend title = tostring(parse_json(Properties).title)
+       | where title != "Unknown" and title != ""
+       | summarize ResolvedTitle = take_any(title) by CorrelationId;
+       ```
+
+    3. In the main Step 4c query body, extract `title` and look up both
+       resolved cause and title:
+       ```kql
+       | extend title = tostring(parsed.title)
+       ...
+       | lookup kind=leftouter resolvedCause on CorrelationId
+       | lookup kind=leftouter resolvedTitle on CorrelationId
+       | extend FinalCause = iif(isempty(ResolvedCause), cause, ResolvedCause)
+       | extend FinalTitle = iif(isempty(ResolvedTitle), title, ResolvedTitle)
+       | summarize
+           Events = count(),
+           ImpactStart = min(TimeGenerated),
+           ImpactEnd = max(TimeGenerated),
+           DurationMin = datetime_diff('minute', max(TimeGenerated), min(TimeGenerated)),
+           Title = take_any(FinalTitle)
+         by CorrelationId, resId, subId, ServiceCategory, FinalCause
+       | order by DurationMin desc
+       ```
+
+    4. In Step 5 Python script, the `impacted_detail` rows now carry a `Title`
+       field. Surface it in:
+       - The CSV as a "DetailedReason" column (alongside the cause category
+         in the "Reason" column)
+       - The Top 10 table as an additional column
+       - Use FinalTitle for the Reason column display when it is more
+         descriptive than the cause category (i.e., prefer
+         "Remote disk disconnected" over "PlatformInitiated")
+
+    ────────────────────────────────────────────────────────────
+    TIERED REPORTING — Dev vs Prod (June 2026 addition)
+    ────────────────────────────────────────────────────────────
+
+    The report MUST be split into separate tiers based on subscription names.
+    This applies to ALL sections: SLA Overview, Health Timeline, Heatmap,
+    Impacted Resource Detail, and Accuracy Validation.
+
+    STEP 0b — Tier classification (run immediately after Step 0):
+
+    1. Run `az account list --query "[?state=='Enabled'].{id:id, name:name}" -o json`
+    2. Classify each subscription by scanning its name:
+       - If the subscription name contains "DEV" (case-insensitive) → **Dev** tier
+       - Otherwise → **Prod** tier
+    3. Store the mapping: {subscriptionId → tier, subscriptionName}.
+
+    STEP 1 — Resource counts MUST include subscriptionId:
+
+    Add `subscriptionId` to the Step 1 Resource Graph summarize clause:
+    ```
+    | summarize ResourceCount = count() by subscriptionId, location, ServiceCategory
+    ```
+    This enables splitting counts by tier.
+
+    MULTI-WORKSPACE ROUTING:
+
+    Not all subscriptions route ResourceHealth to the same Log Analytics
+    workspace. Before querying the Activity Log:
+
+    1. For each subscription, check its diagnostic settings:
+       `az monitor diagnostic-settings subscription list --subscription <subId>`
+    2. Find which workspace receives the ResourceHealth category.
+    3. Group subscriptions by target workspace.
+    4. Query EACH workspace separately for its subscriptions, then MERGE
+       the results.
+    5. Use the SAME full `let`-based Step 4c query for ALL workspaces
+       (confirmed to support `let` subqueries as of
+       June 2026 — do NOT fall back to simplified inline filters).
+
+
+    REPORT STRUCTURE (tiered):
+
+    The final report MUST have this structure:
+
+    ```
+    > Disclaimer
+    > Reporting window, timestamp, data sources
+
+    ## Incidents & Alerts (last month)        ← shared across tiers
+
+    ---
+    # Prod
+    _Subscriptions: ..._
+    ## Prod — SLA Overview                 ← table with only Prod subs' resources
+    ## Prod — Health Timeline
+    ## Prod — Heatmap                      ← separate PNG: sla_heatmap_prod.png
+    ## Prod — Impacted Resource Detail     ← Top 10 + CSV: sla_impacted_prod.csv
+    ## Prod — Accuracy Validation (5a)
+
+    ---
+    # Dev
+    _Subscriptions: ..._
+    ## Dev — SLA Overview                     ← table with only Dev subs' resources
+    ## Dev — Health Timeline
+    ## Dev — Heatmap                          ← separate PNG: sla_heatmap_dev.png
+    ## Dev — Impacted Resource Detail         ← Top 10 + CSV: sla_impacted_dev.csv
+    ## Dev — Accuracy Validation (5a)
+    ```
+
+    Each tier gets its own:
+    - Resource counts (only resources from that tier's subscriptions)
+    - Availability calculations (fleet size = only that tier's resources)
+    - Heatmap PNG (separate file per tier)
+    - Top 10 impacted resources (only from that tier)
+    - Downloadable CSV (only that tier's impacted resources, include
+      SubscriptionName and DetailedReason columns)
+    - Accuracy cross-check (only that tier's Top 10)
+
+    The Incidents & Alerts section (Service Health) remains shared — those
+    are tenant-wide events not scoped to a single subscription tier.
+
+    STEP 5 SCRIPT CHANGES for tiers:
+
+    The Step 5 Python script must:
+    1. Accept a tier_map dict: {subscriptionId: {"tier": "Dev"|"Prod", "name": "..."}}
+    2. Loop over each tier, filtering count_rows and impacted_detail by
+       the tier's subscription set
+    3. Compute availability per tier independently (fleet size, downtime,
+       monthly_downtime all scoped to that tier's subscriptions)
+    4. Generate a separate heatmap PNG per tier
+    5. Write a separate CSV per tier (include SubscriptionName and
+       DetailedReason columns)
+    6. Print separate Top 10 tables per tier (include a "Detailed Reason"
+       column showing the resolved title from Step 4c)
+
+    IMPORTANT — When a tier has zero breaches, state:
+    "All in-scope regions and services in [TierName] met the 99.9% estimated
+    availability target (no service credit due) for the reporting window."
+
+    When a tier HAS breaches, call them out explicitly and note whether the
+    impacted resources are likely customer-off (common in Dev) vs genuine
+    platform events.
+
+  agent: sla-analyzer            # Route to the SLA subagent
+  # notification_channel: teams  # Uncomment to post the report to Teams
+  # duration_hours: null         # Run indefinitely
+  # max_executions: null         # No execution limit

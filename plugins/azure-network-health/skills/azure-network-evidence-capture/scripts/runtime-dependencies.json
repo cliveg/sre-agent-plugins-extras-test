@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "azAccounts": {
+    "version": "3.0.4",
+    "nugetPackageUri": "https://api.nuget.org/v3-flatcontainer/az.accounts/3.0.4/az.accounts.3.0.4.nupkg",
+    "source": "wara-assessment/skills/wara-assessment/config/dependencies.json",
+    "cache": "WARA_CACHE or user-home/.cache/wara-assessment",
+    "bootstrapAuthorizedByDefault": false
+  },
+  "python": {
+    "jsonschema": ">=4.23,<5",
+    "jmespath": "1.1.0",
+    "privateJmespathDirectory": "user-home/.cache/azure-network-health/python/jmespath-1.1.0",
+    "bootstrapAuthorizedByDefault": false
+  }
+}

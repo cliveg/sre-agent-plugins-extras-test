@@ -1,0 +1,25 @@
+{
+  "id": "azure-network-health",
+  "name": "Azure Network Health Assessment (Restricted Prototype)",
+  "version": "0.21.2",
+  "description": "Reference-led read-only Azure network assessment adapting Usman Mahmood's reporting and Network Desk specialist procedures. Hostless scoped evidence, contextual NSG/ingress review, topology/routing/Private DNS/firewall/hybrid coverage, recorded context and guarded private reports.",
+  "author": {
+    "name": "Clive Graven"
+  },
+  "category": "Reliability",
+  "keywords": ["azure", "network-health", "feasibility", "read-only"],
+  "skills": [
+    {
+      "name": "azure-network-health-assessment",
+      "path": "skills/azure-network-health-assessment/SKILL.md",
+      "description": "Use for reference-led comprehensive Azure network configuration assessment and executive/engineering reports: topology/peering, routing, contextual NSG rule/ingress review, Private Endpoint/DNS, existing telemetry/recorded context and firewall/hybrid configuration. Also retains legacy first-pass/check workflows. Preserve unassessed/effective-evidence gaps; no changes or health certification.",
+      "tools": ["RunAzCliReadCommands", "GetAzCliHelp", "RunInTerminal", "ReadFile", "SaveFileToBlob"]
+    },
+    {
+      "name": "azure-network-evidence-capture",
+      "path": "skills/azure-network-evidence-capture/SKILL.md",
+      "description": "Capture scoped evidence for reference-led comprehensive networking reports and PaaS public-source review, preferring Log Analytics AzureActivity for history. Build verified reviews, timelines and comparisons, preserve source windows/unknowns and publish privately. No logging changes, silent fallback or causal claims.",
+      "tools": ["RunInTerminal", "ReadFile", "SearchMemory"]
+    }
+  ]
+}

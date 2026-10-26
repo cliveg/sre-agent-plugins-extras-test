@@ -1,0 +1,34 @@
+This report adapts templates and reporting procedures from Microsoft Azure's
+Well-Architected Reliability Assessment (WARA).
+https://github.com/Azure/Well-Architected-Reliability-Assessment
+Inspected revision: 86832273f857b7298b625b26d18e2e0dbb06714c
+Upstream assets: src/modules/wara/reports/3_wara_reports_generator.ps1,
+Mandatory - Executive Summary presentation - Template.pptx,
+Assessment-Findings-Report-v1.xlsx.
+
+The cross-platform generator adds prioritized findings, an advisory environment
+overlay and a Word report. Native charts/static summaries replace Excel COM pivots.
+It is not Start-WARAReport output, pixel-identical reproduction, or validated
+desired state. Keep this notice with redistributed reports.
+
+MIT License
+
+Copyright (c) 2024 Microsoft Azure
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

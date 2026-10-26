@@ -1,0 +1,14 @@
+{
+  "Name": "AzVMTools VM Pre-Assessment Operator",
+  "IsCustom": true,
+  "Description": "Permits AzVMTools Deep preflight guest inspection through Azure VM Run Command. Assign together with Reader and scope only to approved assessment resource groups.",
+  "Actions": [
+    "Microsoft.Compute/virtualMachines/runCommand/action"
+  ],
+  "NotActions": [],
+  "DataActions": [],
+  "NotDataActions": [],
+  "AssignableScopes": [
+    "/subscriptions/<subscription-id>/resourceGroups/<assessment-resource-group>"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "_comment": "Example scopes for Invoke-WaraRun.ps1 -ScopesFile. Copy to a customer-owned location. One WARA run per scope; resource-group scopes pass only -ResourceGroups and subscription scopes pass only -SubscriptionIds (WARA unions the two filters).",
+  "tenantId": "00000000-0000-0000-0000-000000000000",
+  "scopes": [
+    {
+      "name": "rg-app-prod",
+      "type": "ResourceGroup",
+      "subscriptionId": "00000000-0000-0000-0000-000000000000",
+      "resourceGroup": "rg-app-prod",
+      "enabled": true
+    },
+    {
+      "name": "_subscription",
+      "type": "Subscription",
+      "subscriptionId": "00000000-0000-0000-0000-000000000000",
+      "enabled": false
+    }
+  ]
+}

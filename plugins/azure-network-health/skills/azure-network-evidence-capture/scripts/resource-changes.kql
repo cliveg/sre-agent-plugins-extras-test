@@ -1,0 +1,11 @@
+resourcechanges
+| where subscriptionId == '__SUBSCRIPTION__'
+| where todatetime(properties.changeAttributes.timestamp) >= datetime('__START__')
+    and todatetime(properties.changeAttributes.timestamp) <= datetime('__END__')
+| project id, subscriptionId,
+    targetResourceId=properties.targetResourceId,
+    targetResourceType=properties.targetResourceType,
+    changeType=properties.changeType,
+    changeAttributes=properties.changeAttributes,
+    changes=properties.changes
+| order by id asc

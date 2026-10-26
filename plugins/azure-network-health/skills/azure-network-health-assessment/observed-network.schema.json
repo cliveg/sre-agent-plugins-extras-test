@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:azure-network-health:observed:0.2.0",
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "run", "scope", "dataHandling", "collections", "coverage", "entities", "evidence", "assertions", "relationships"],
+  "properties": {
+    "schemaVersion": {"enum": ["0.1.0", "0.2.0", "0.3.0", "0.4.0", "0.5.0", "0.6.0", "0.7.0", "0.8.0", "0.9.0"]},
+    "run": {
+      "type": "object", "additionalProperties": false,
+      "required": ["runId", "capabilityVersion", "queryCatalogVersion", "startedAt", "completedAt"],
+      "properties": {
+        "runId": {"type": "string", "format": "uuid"},
+        "capabilityVersion": {"enum": ["0.1.0", "0.1.1", "0.1.2", "0.1.3", "0.1.4", "0.1.5", "0.1.6", "0.2.0", "0.3.0", "0.4.0", "0.5.0", "0.6.0", "0.7.0", "0.8.0", "0.9.0", "0.9.1", "0.10.0", "0.11.0", "0.12.0", "0.13.0"]},
+        "queryCatalogVersion": {"enum": ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0"]},
+        "startedAt": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/timestamp"},
+        "completedAt": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/timestamp"}
+      }
+    },
+    "scope": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/scope"},
+    "dataHandling": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/dataHandling"},
+    "collections": {"type": "array", "items": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/collection"}},
+    "coverage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "permissionCompleteness", "accessibleResultsOnly", "indexFreshness", "issues"],
+      "properties": {
+        "status": {"enum": ["accessible-pages-collected", "partial"]},
+        "permissionCompleteness": {"const": "UNKNOWN"},
+        "accessibleResultsOnly": {"const": true},
+        "indexFreshness": {"const": "not-independently-established"},
+        "issues": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "entities": {"type": "array", "items": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/entity"}},
+    "evidence": {"type": "array", "items": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/evidence"}},
+    "assertions": {
+      "type": "array", "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["assertionId", "entityId", "property", "value", "classification", "unknownReason", "evidenceRefs"],
+        "properties": {
+          "assertionId": {"type": "string"}, "entityId": {"type": "string"},
+          "property": {"type": "string"}, "value": {"type": ["string", "number", "boolean", "null", "array"], "items": {"type": ["string", "integer", "null"]}},
+          "classification": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/classification"},
+          "unknownReason": {"type": ["string", "null"]},
+          "evidenceRefs": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/refs"}
+        }
+      }
+    },
+    "relationships": {
+      "type": "array", "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["relationshipId", "sourceId", "targetId", "relationshipType", "classification", "unknownReason", "evidenceRefs"],
+        "properties": {
+          "relationshipId": {"type": "string"}, "sourceId": {"type": "string"},
+          "targetId": {"type": ["string", "null"]},
+          "relationshipType": {"enum": ["contains", "inResourceGroup", "associatedWithNSG", "associatedWithRouteTable", "peeringTo", "hasConfiguredNextHop", "attachedToSubnet", "attachedToWorkload", "targetsPrivateLinkResource", "dnsLinkedToVNet", "referencesPrivateDnsZone", "referencesResolverOutboundEndpoint", "resolverAttachedToVNet", "inboundAttachedToSubnet", "associatesPerimeterResource", "associatedWithPerimeterProfile"]},
+          "classification": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/classification"},
+          "unknownReason": {"type": ["string", "null"]},
+          "evidenceRefs": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/refs"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+# Template only. Replace every angle-bracket value, review the scope and private
+# destination, then copy into extras/scheduled-tasks/ before deployment.
+api_version: azuresre.ai/v1
+kind: ScheduledTask
+metadata:
+  name: azure-tag-governance-weekly
+spec:
+  name: azure-tag-governance-weekly
+  description: >
+    Weekly read-only Azure tag and basic naming governance assessment with an
+    immutable evidence-backed profile and deterministic reports.
+  cron: "0 2 * * 0"
+  agent_prompt: |
+    Run the azure-tag-governance skill for the configured scope.
+
+    TENANT ID: <tenant-guid>
+    MANAGED IDENTITY CLIENT ID: <client-id>
+    SCOPE: <explicit-management-group-subscription-or-resource-group>
+    OUTPUT REPOSITORY: codeRefs/<approved-private-output-repo>
+    OUTPUT BRANCH: <allowlisted-branch>
+    CUSTOMER LABEL: <stable-customer-label>
+    LOG ANALYTICS ARG SUPPLEMENT: disabled
+
+    Load and verify the latest Git run. Collect paginated Resource Graph and
+    separate Azure Policy evidence with read-only permissions. Do not expand the
+    scope. Build and verify the immutable run bundle, then publish with
+    optimistic concurrency. If any required collection or publication step
+    fails, report the run as partial or failed and preserve it for same-run
+    resume. End with: No Azure resources were changed.

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:azure-network-health:assessment:0.2.0",
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "runId", "capabilityVersion", "checkCatalogVersion", "priorityPolicyVersion", "observationArtifact", "checksExecuted", "status", "scope", "coverage", "dataHandling", "findings", "evidenceCatalog", "collectionCatalog"],
+  "properties": {
+    "schemaVersion": {"enum": ["0.1.0", "0.2.0", "0.3.0", "0.4.0", "0.5.0", "0.6.0", "0.7.0", "0.8.0", "0.9.0"]},
+    "runId": {"type": "string", "format": "uuid"},
+    "capabilityVersion": {"enum": ["0.1.0", "0.1.1", "0.1.2", "0.1.3", "0.1.4", "0.1.5", "0.1.6", "0.2.0", "0.3.0", "0.4.0", "0.5.0", "0.6.0", "0.7.0", "0.8.0", "0.9.0", "0.9.1", "0.10.0", "0.11.0", "0.12.0", "0.13.0"]},
+    "checkCatalogVersion": {"enum": ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0"]},
+    "priorityPolicyVersion": {"enum": ["1.0.0", "1.1.0"]},
+    "observationArtifact": {
+      "type": "object", "additionalProperties": false, "required": ["filename", "sha256"],
+      "properties": {"filename": {"const": "observed-network.json"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+    },
+    "checksExecuted": {
+      "type": "array", "minItems": 6, "maxItems": 18, "items": {
+        "type": "object", "additionalProperties": false, "required": ["checkId", "checkVersion"],
+        "properties": {"checkId": {"type": "string"}, "checkVersion": {"type": "string"}}
+      }
+    },
+    "status": {"enum": ["limited-configuration-triage", "incomplete-configuration-triage"]},
+    "scope": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/scope"},
+    "accessPreference": {"type": "object"},
+    "serviceAccessReview": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/serviceAccessReview"},
+    "serviceControlReconciliation": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/serviceControlReconciliation"},
+    "nspConfigurationReview": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/nspConfigurationReview"},
+    "dnsPlanning": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/dnsPlanning"},
+    "dnsPaths": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/dnsPaths"},
+    "dnsResolverAdoption": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/dnsResolverAdoption"},
+    "dnsIntentComparison": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/dnsIntentComparison"},
+    "provenanceTimeReview": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/provenanceTimeReview"},
+    "coverage": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/coverage"},
+    "dataHandling": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/dataHandling"},
+    "findings": {
+      "type": "array", "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["findingId", "checkId", "checkVersion", "title", "category", "recordType", "interpretationClassification", "severity", "priority", "affectedResources", "observedState", "expectedState", "reasoning", "risk", "recommendation", "dependencies", "confidence", "evidenceGaps", "recommendedDeepDive", "evidenceRefs", "collectionRefs", "guidanceReferences"],
+        "properties": {
+          "findingId": {"type": "string"}, "checkId": {"type": "string"}, "checkVersion": {"type": "string"},
+          "title": {"type": "string"}, "category": {"type": "string"},
+          "recordType": {"enum": ["verifiedProblem", "potentialRisk", "architectureObservation", "contextValidation", "evidenceGap", "positiveObservation"]},
+          "interpretationClassification": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/classification"},
+          "severity": {"enum": [null, "critical", "high", "medium", "low"]},
+          "priority": {
+            "type": "object", "additionalProperties": false,
+            "required": ["rank", "band", "actionType", "reason"],
+            "properties": {
+              "rank": {"type": "integer", "minimum": 1},
+              "band": {"enum": ["P1", "P2", "P3", "INFO"]},
+              "actionType": {"enum": ["evidenceCollection", "contextValidation", "remediationPlanning", "none"]},
+              "reason": {"type": "string"}
+            }
+          },
+          "affectedResources": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/refs"},
+          "observedState": {"type": "string"}, "expectedState": {"type": ["string", "null"]},
+          "reasoning": {"type": "string"}, "risk": {"type": "string"}, "recommendation": {"type": "string"},
+          "dependencies": {"type": "array", "items": {"type": "string"}},
+          "confidence": {"enum": ["high", "medium", "low"]},
+          "evidenceGaps": {"type": "array", "items": {"type": "string"}},
+          "recommendedDeepDive": {
+            "type": ["object", "null"], "additionalProperties": false,
+            "required": ["domain", "question", "requiredEvidence", "execution"],
+            "properties": {
+              "domain": {"type": "string"}, "question": {"type": "string"},
+              "requiredEvidence": {"type": "array", "items": {"type": "string"}},
+              "execution": {"const": "recommendationOnly"}
+            }
+          },
+          "evidenceRefs": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/refs"},
+          "collectionRefs": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/refs"},
+          "guidanceReferences": {"type": "array", "items": {"type": "string", "format": "microsoft-learn-url"}}
+        }
+      }
+    },
+    "evidenceCatalog": {"type": "array", "items": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/evidence"}},
+    "collectionCatalog": {"type": "array", "items": {"$ref": "urn:azure-network-health:common:0.2.0#/$defs/collection"}}
+  }
+}

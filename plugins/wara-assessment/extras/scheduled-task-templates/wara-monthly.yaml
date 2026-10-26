@@ -1,0 +1,32 @@
+# Template only. Replace every angle-bracket value, review the scopes, then copy this file into
+# extras/scheduled-tasks/ in your deployment copy before running tools/deploy-extras.sh.
+api_version: azuresre.ai/v1
+kind: ScheduledTask
+metadata:
+  name: wara-monthly
+spec:
+  name: wara-monthly
+  description: >
+    Monthly read-only Well-Architected Reliability Assessment (WARA) per configured scope, with a
+    prioritized findings report and month-over-month delta.
+  cron: "0 6 2 * *"    # 06:00 UTC on the 2nd of each month
+  agent_prompt: |
+    Run the monthly WARA assessment with the wara-assessment skill.
+
+    TENANT ID: <tenant-guid>
+    MANAGED IDENTITY CLIENT ID: <client-id>   (Reader on every scope below)
+    OUTPUT REPOSITORY: codeRefs/<private-output-repo>   (OutputRoot = repository root)
+    PRIORITIZATION FILE: codeRefs/<private-output-repo>/config/prioritization.yaml   (optional)
+    APRL REF: main
+    SCOPES (one WARA run each, in this order):
+      - ResourceGroup  subscription <subscription-guid>  resource group <rg-name>
+      - Subscription   subscription <subscription-guid>
+
+    For each scope: run scripts/Invoke-WaraRun.ps1 in restricted mode, verify run.json, review
+    derived/prioritized-report.md, write derived/review.md, then commit the run folder and
+    latest.json to the output repository with message "wara: <scope-folder> <runId> (<status>)"
+    and push.
+
+    Finish with one summary across scopes: status, band counts, NEW P1/P2 findings, validation
+    backlog, resolved items, deviations. End with: No Azure resources were changed.
+  agent: wara-reviewer

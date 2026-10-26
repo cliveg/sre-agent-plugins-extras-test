@@ -1,0 +1,69 @@
+# Default prioritization rules for wara-assessment (prioritize.py).
+# Copy to a customer-owned location and pass -PrioritizationFile to tailor it; keep this file generic.
+#
+#   score = impact x evidence x control x criticality
+#
+# Severity (impact) comes from APRL/Advisor and is NOT changed here; this file only decides the
+# recommended action order (band) for a given environment.
+version: 1
+
+weights:
+  impact:
+    High: 3
+    Medium: 2
+    Low: 1
+    default: 1
+  evidence:
+    OBSERVED: 1.0   # APRL query matched or Azure Advisor reported it
+    UNKNOWN: 0.75   # WARA could not evaluate automatically -> next action is validation
+  control:          # APRL recommendationControl / Advisor category
+    HighAvailability: 1.2
+    DisasterRecovery: 1.2
+    BusinessContinuity: 1.1
+    ServiceUpgradeAndRetirement: 1.1
+    Scalability: 1.0
+    Security: 1.0
+    Personalized: 1.0
+    MonitoringAndAlerting: 0.9
+    Governance: 0.8
+    OtherBestPractices: 0.8
+    default: 1.0
+
+criticality:
+  default: standard
+  levels:
+    critical: 1.5
+    high: 1.2
+    standard: 1.0
+    low: 0.7
+  # First matching rule wins. field: id | name | type | resourceGroup | location | subscriptionId
+  rules: []
+  #  - name: production resource groups
+  #    field: resourceGroup
+  #    match: "(?i)-prod(-|$)"
+  #    level: high
+  #  - name: sandboxes
+  #    field: resourceGroup
+  #    match: "(?i)^rg-(sbx|dev|test)-"
+  #    level: low
+
+# Highest min first. A High-impact HA finding that was OBSERVED on a standard resource scores 3.6 (P1);
+# the same finding with UNKNOWN evidence scores 2.7 (P2, validate first).
+bands:
+  - name: P1
+    min: 3.5
+  - name: P2
+    min: 2.4
+  - name: P3
+    min: 1.4
+  - name: P4
+    min: 0
+
+# Accepted risks. Match on findingKey, or recommendationId and/or resourceIdMatch (regex).
+# Expired suppressions are ignored automatically. Keep a reason and owner for audit.
+suppressions: []
+#  - recommendationId: 0b80b67c-afbe-4988-ad58-a85a146b681e
+#    resourceIdMatch: "(?i)/resourceGroups/rg-sandbox-"
+#    reason: Sandbox workloads are not zone redundant by design
+#    owner: platform-team
+#    expires: 2027-03-31

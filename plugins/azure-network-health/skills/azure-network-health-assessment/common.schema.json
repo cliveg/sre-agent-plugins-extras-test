@@ -1,0 +1,546 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:azure-network-health:common:0.2.0",
+  "$defs": {
+    "id": {"type": "string", "minLength": 1},
+    "timestamp": {"type": "string", "format": "utc-date-time"},
+    "refs": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true},
+    "classification": {"enum": ["OBSERVED", "DECLARED", "INFERRED", "UNKNOWN"]},
+    "nspConfigurationReview": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reviewVersion", "apiVersion", "collectionRefs", "collectionStatuses", "perimeters", "profiles", "ruleMetadata", "associationRows", "perimeterModeWithoutObservedAssociation", "limitations"],
+      "properties": {
+        "reviewVersion": {"const": "1.0.0"}, "apiVersion": {"const": "2024-07-01"},
+        "collectionRefs": {"$ref": "#/$defs/refs"},
+        "collectionStatuses": {
+          "type": "object", "additionalProperties": false,
+          "required": ["nsp-perimeters", "nsp-profiles", "nsp-associations", "nsp-rules"],
+          "properties": {
+            "nsp-perimeters": {"$ref": "#/$defs/collection/properties/status"},
+            "nsp-profiles": {"$ref": "#/$defs/collection/properties/status"},
+            "nsp-associations": {"$ref": "#/$defs/collection/properties/status"},
+            "nsp-rules": {"$ref": "#/$defs/collection/properties/status"}
+          }
+        },
+        "perimeters": {"type": "array", "items": {"$ref": "#/$defs/nspMetadataRow"}},
+        "profiles": {"type": "array", "items": {"$ref": "#/$defs/nspMetadataRow"}},
+        "ruleMetadata": {"type": "array", "items": {"$ref": "#/$defs/nspMetadataRow"}},
+        "associationRows": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["associationId", "perimeterId", "targetResourceId", "profileId", "targetScope", "targetCollectionState", "configuredAccessMode", "configurationState", "associationProperties", "ruleMetadataCoverage", "ruleIds", "retainedInboundRuleCount", "retainedOutboundRuleCount", "effectiveEnforcement", "exceptionApproval", "evidenceGaps", "evidenceRefs"],
+          "properties": {
+            "associationId": {"type": "string"}, "perimeterId": {"type": "string"},
+            "targetResourceId": {"type": ["string", "null"]}, "profileId": {"type": ["string", "null"]},
+            "targetScope": {"enum": ["same-workload-reference", "external-or-unknown-reference"]},
+            "targetCollectionState": {"type": "string"}, "configuredAccessMode": {"type": ["string", "null"]},
+            "configurationState": {"enum": ["enforced-configured-unverified", "transition-configured-unverified", "audit-configured-unverified", "unknown-configured-mode"]},
+            "associationProperties": {"$ref": "#/$defs/configuration"},
+            "ruleMetadataCoverage": {"enum": ["selected-metadata-collected", "unknown-or-partial"]},
+            "ruleIds": {"$ref": "#/$defs/refs"},
+            "retainedInboundRuleCount": {"type": "integer", "minimum": 0},
+            "retainedOutboundRuleCount": {"type": "integer", "minimum": 0},
+            "effectiveEnforcement": {"const": "UNKNOWN"}, "exceptionApproval": {"const": "not-assessed"},
+            "evidenceGaps": {"$ref": "#/$defs/refs"}, "evidenceRefs": {"$ref": "#/$defs/refs"}
+          }
+        }},
+        "perimeterModeWithoutObservedAssociation": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["serviceId", "status", "evidenceRefs"],
+          "properties": {
+            "serviceId": {"type": "string"}, "status": {"const": "association-not-observed-in-collected-perimeter-scope"},
+            "evidenceRefs": {"$ref": "#/$defs/refs"}
+          }
+        }},
+        "limitations": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "nspMetadataRow": {
+      "type": "object", "additionalProperties": false, "required": ["entityId", "properties", "evidenceRefs"],
+      "properties": {
+        "entityId": {"type": "string"}, "properties": {"$ref": "#/$defs/configuration"},
+        "evidenceRefs": {"$ref": "#/$defs/refs"}
+      }
+    },
+    "serviceControlReconciliation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reviewVersion", "collectionRefs", "unsupportedServiceIds", "rows", "limitations"],
+      "properties": {
+        "reviewVersion": {"const": "1.0.0"},
+        "collectionRefs": {"$ref": "#/$defs/refs"}, "unsupportedServiceIds": {"$ref": "#/$defs/refs"},
+        "limitations": {"type": "array", "items": {"type": "string"}},
+        "rows": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["serviceId", "resourceType", "indexedSource", "directSource", "fields", "actualReachability", "evidenceGaps"],
+          "properties": {
+            "serviceId": {"type": "string"}, "resourceType": {"type": "string"},
+            "actualReachability": {"const": "UNKNOWN"},
+            "evidenceGaps": {"$ref": "#/$defs/refs"},
+            "indexedSource": {
+              "type": "object", "additionalProperties": false,
+              "required": ["collectionId", "collectedAt", "evidenceRefs"],
+              "properties": {
+                "collectionId": {"type": "string"}, "collectedAt": {"$ref": "#/$defs/timestamp"},
+                "evidenceRefs": {"$ref": "#/$defs/refs"}
+              }
+            },
+            "directSource": {
+              "type": "object", "additionalProperties": false,
+              "required": ["collectionId", "apiVersion", "readStatus", "readError", "collectedAt", "entityId", "evidenceRefs"],
+              "properties": {
+                "collectionId": {"type": "string"}, "apiVersion": {"type": "string"},
+                "readStatus": {"enum": ["succeeded", "partial", "permissionDenied", "unavailable", "unsupported", "failed", "notAttempted"]},
+                "readError": {"type": ["string", "null"]},
+                "collectedAt": {"type": ["string", "null"], "format": "utc-date-time"},
+                "entityId": {"type": ["string", "null"]}, "evidenceRefs": {"$ref": "#/$defs/refs"}
+              }
+            },
+            "fields": {"type": "array", "minItems": 6, "maxItems": 6, "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["field", "indexedValue", "directValue", "result"],
+              "properties": {
+                "field": {"enum": ["publicNetworkAccess", "firewallDefaultAction", "trustedServiceBypass", "ipRuleCount", "virtualNetworkRuleCount", "resourceAccessRuleCount"]},
+                "indexedValue": {"type": ["string", "integer", "null"]},
+                "directValue": {"type": ["string", "integer", "null"]},
+                "result": {"enum": ["observed-match", "different-observed-values", "both-unavailable", "indexed-unavailable", "direct-unavailable", "direct-not-collected", "not-applicable"]}
+              }
+            }}
+          }
+        }}
+      }
+    },
+    "serviceAccessReview": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reviewVersion", "supportedResourceTypes", "serviceInventoryStatus", "connectionInventoryStatus", "collectionRefs", "rows", "limitations"],
+      "properties": {
+        "reviewVersion": {"const": "1.0.0"},
+        "supportedResourceTypes": {"$ref": "#/$defs/refs"},
+        "serviceInventoryStatus": {"enum": ["succeeded", "partial", "permissionDenied", "unavailable", "unsupported", "failed", "notAttempted"]},
+        "connectionInventoryStatus": {"enum": ["succeeded", "partial", "permissionDenied", "unavailable", "unsupported", "failed", "notAttempted"]},
+        "collectionRefs": {"$ref": "#/$defs/refs"},
+        "limitations": {"type": "array", "items": {"type": "string"}},
+        "rows": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["serviceId", "resourceType", "supported", "configurationState", "properties", "connectionIds", "approvedConnectionIds", "approvedGroupIds", "actualReachability", "exceptionApproval", "evidenceRefs", "evidenceGaps"],
+          "properties": {
+            "serviceId": {"type": "string"}, "resourceType": {"type": "string"},
+            "supported": {"type": "boolean"},
+            "configurationState": {"enum": ["unsupported-family", "unknown-setting", "disabled-configured", "enabled-firewall-allow", "enabled-firewall-deny", "enabled-firewall-unknown", "perimeter-mode-unverified"]},
+            "properties": {"$ref": "#/$defs/configuration"},
+            "connectionIds": {"$ref": "#/$defs/refs"},
+            "approvedConnectionIds": {"$ref": "#/$defs/refs"},
+            "approvedGroupIds": {"$ref": "#/$defs/refs"},
+            "actualReachability": {"const": "UNKNOWN"},
+            "exceptionApproval": {"const": "not-assessed"},
+            "evidenceRefs": {"$ref": "#/$defs/refs"},
+            "evidenceGaps": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+          }
+        }}
+      }
+    },
+    "scope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["requestedSubscriptionIds", "returnedSubscriptionIds", "resourceTypes", "deferredEvidence", "expansionPolicy"],
+      "properties": {
+        "requestedSubscriptionIds": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "string", "format": "uuid"}},
+        "returnedSubscriptionIds": {"type": "array", "items": {"type": "string", "format": "uuid"}, "uniqueItems": true},
+        "resourceTypes": {"type": "array", "items": {"type": "string"}},
+        "deferredEvidence": {"type": "array", "items": {"type": "string"}},
+        "expansionPolicy": {"const": "no-automatic-cross-subscription-expansion"},
+        "dnsHostingSubscriptionIds": {"type": ["array", "null"], "minItems": 1, "maxItems": 20, "uniqueItems": true, "items": {"type": "string", "format": "uuid"}}
+      }
+    },
+    "dnsPlanning": {
+      "type": "object", "additionalProperties": false,
+      "required": ["catalogVersion", "catalogSha256", "source", "sourceRevision", "cloud", "dnsHostingScopeStatus", "serviceInventoryStatus", "connectionInventoryStatus", "dnsSubscriptionIds", "collectionRefs", "serviceRows", "zones", "repeatedZoneNames", "limitations"],
+      "properties": {
+        "catalogVersion": {"type": "string"},
+        "catalogSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "source": {"type": "string", "format": "microsoft-learn-url"},
+        "sourceRevision": {"type": "string"},
+        "cloud": {"const": "AzureCloud"},
+        "dnsHostingScopeStatus": {"enum": ["not-declared", "declared-accessible-results", "declared-partial"]},
+        "serviceInventoryStatus": {"enum": ["succeeded", "partial", "permissionDenied", "unavailable", "unsupported", "failed", "notAttempted"]},
+        "connectionInventoryStatus": {"enum": ["succeeded", "partial", "permissionDenied", "unavailable", "unsupported", "failed", "notAttempted"]},
+        "dnsSubscriptionIds": {"type": "array", "items": {"type": "string", "format": "uuid"}, "uniqueItems": true},
+        "collectionRefs": {"$ref": "#/$defs/refs"},
+        "limitations": {"type": "array", "items": {"type": "string"}},
+        "serviceRows": {
+          "type": "array", "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["resourceType", "subresources", "zoneValues", "serviceIds", "connectionIds", "serviceIdsWithoutObservedConnection", "zoneMatches", "applicability", "note", "evidenceRefs"],
+            "properties": {
+              "resourceType": {"type": "string"},
+              "subresources": {"$ref": "#/$defs/refs"},
+              "zoneValues": {"$ref": "#/$defs/refs"},
+              "serviceIds": {"$ref": "#/$defs/refs"},
+              "connectionIds": {"$ref": "#/$defs/refs"},
+              "serviceIdsWithoutObservedConnection": {"$ref": "#/$defs/refs"},
+              "applicability": {"const": "planning-only-requires-service-feature-and-customer-intent"},
+              "note": {"type": "string"},
+              "evidenceRefs": {"$ref": "#/$defs/refs"},
+              "zoneMatches": {
+                "type": "array", "items": {
+                  "type": "object", "additionalProperties": false,
+                  "required": ["zoneValue", "zoneIds", "status"],
+                  "properties": {
+                    "zoneValue": {"type": "string"}, "zoneIds": {"$ref": "#/$defs/refs"},
+                    "status": {"enum": ["observed-name", "template-candidates-require-context", "not-observed-in-accessible-scopes", "unknown-coverage"]}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "zones": {
+          "type": "array", "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["zoneId", "name", "subscriptionId", "linkIds", "zoneGroupIds", "evidenceRefs"],
+            "properties": {
+              "zoneId": {"type": "string"}, "name": {"type": "string"},
+              "subscriptionId": {"type": "string", "format": "uuid"},
+              "linkIds": {"$ref": "#/$defs/refs"}, "zoneGroupIds": {"$ref": "#/$defs/refs"},
+              "evidenceRefs": {"$ref": "#/$defs/refs"},
+              "recordMetadata": {"$ref": "#/$defs/recordMetadata"}
+            }
+          }
+        },
+        "repeatedZoneNames": {
+          "type": "array", "items": {
+            "type": "object", "additionalProperties": false, "required": ["name", "zoneIds"],
+            "properties": {"name": {"type": "string"}, "zoneIds": {"$ref": "#/$defs/refs"}}
+          }
+        }
+      }
+    },
+    "recordMetadata": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "summaryEntityId", "properties", "collectionRefs", "evidenceRefs"],
+      "properties": {
+        "status": {"enum": ["selected-metadata-collected", "partial", "not-collected"]},
+        "summaryEntityId": {"type": ["string", "null"]},
+        "properties": {"$ref": "#/$defs/configuration"},
+        "collectionRefs": {"$ref": "#/$defs/refs"},
+        "evidenceRefs": {"$ref": "#/$defs/refs"}
+      }
+    },
+    "dnsPaths": {
+      "type": "object", "additionalProperties": false,
+      "required": ["collectionRefs", "rows", "limitations"],
+      "properties": {
+        "collectionRefs": {"$ref": "#/$defs/refs"},
+        "limitations": {"type": "array", "items": {"type": "string"}},
+        "rows": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["entityId", "resourceType", "properties", "evidenceRefs"],
+          "properties": {
+            "entityId": {"type": "string"}, "resourceType": {"type": "string"},
+            "properties": {"$ref": "#/$defs/configuration"}, "evidenceRefs": {"$ref": "#/$defs/refs"}
+          }
+        }}
+      }
+    },
+    "dnsIntentComparison": {
+      "type": "object", "additionalProperties": false,
+      "required": ["comparisonVersion", "classification", "intent", "intentSha256", "hashScope", "provenanceVerification", "observationCompletedAt", "timeAlignment", "actualClientUse", "rows", "limitations"],
+      "properties": {
+        "comparisonVersion": {"const": "1.0.0"}, "classification": {"const": "DECLARED"},
+        "intent": {"type": "object"},
+        "intentSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "hashScope": {"const": "canonical-supplied-intent-not-source-document"},
+        "provenanceVerification": {"const": "operator-supplied-not-independently-authenticated"},
+        "observationCompletedAt": {"$ref": "#/$defs/timestamp"},
+        "timeAlignment": {"enum": ["intent-declared-after-observation", "intent-declared-no-later-than-observation"]},
+        "actualClientUse": {"const": "UNKNOWN"},
+        "limitations": {"type": "array", "items": {"type": "string"}},
+        "rows": {"type": "array", "maxItems": 500, "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["cohortId", "stage", "vnetId", "expectedDnsMode", "requiredRulesetIds", "requiredInboundEndpointIds", "observedDnsMode", "result", "differences", "evidenceGaps", "evidenceRefs", "supportingEntityIds"],
+          "properties": {
+            "cohortId": {"type": "string"}, "stage": {"enum": ["planned", "in-progress", "required-now", "excluded"]},
+            "vnetId": {"type": "string"}, "expectedDnsMode": {"enum": ["unspecified", "custom-configured", "azure-provided-configured"]},
+            "requiredRulesetIds": {"$ref": "#/$defs/refs"}, "requiredInboundEndpointIds": {"$ref": "#/$defs/refs"},
+            "observedDnsMode": {"enum": ["UNKNOWN", "custom-configured", "azure-provided-configured"]},
+            "result": {"enum": ["excluded", "no-declared-target", "unknown-evidence", "configured-difference", "configured-match"]},
+            "differences": {"type": "array", "items": {"type": "string"}},
+            "evidenceGaps": {"type": "array", "items": {"type": "string"}},
+            "evidenceRefs": {"$ref": "#/$defs/refs"}, "supportingEntityIds": {"$ref": "#/$defs/refs"}
+          }
+        }}
+      }
+    },
+    "provenanceTimeReview": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reviewVersion", "referenceAt", "referenceSource", "policy", "validity", "observationStartedAt", "observationCompletedAt", "observationStartAgeMicroseconds", "observationCompletionAgeMicroseconds", "observationIssues", "collections", "intent", "limitations"],
+      "properties": {
+        "reviewVersion": {"const": "1.0.0"}, "referenceAt": {"$ref": "#/$defs/timestamp"},
+        "referenceSource": {"const": "operator-supplied-not-independently-authenticated"},
+        "policy": {"const": "age-and-provenance-only-no-expiry-thresholds"}, "validity": {"const": "UNKNOWN"},
+        "observationStartedAt": {"$ref": "#/$defs/timestamp"}, "observationCompletedAt": {"$ref": "#/$defs/timestamp"},
+        "observationStartAgeMicroseconds": {"type": ["integer", "null"], "minimum": 0},
+        "observationCompletionAgeMicroseconds": {"type": ["integer", "null"], "minimum": 0},
+        "observationIssues": {"type": "array", "items": {"type": "string"}},
+        "limitations": {"type": "array", "items": {"type": "string"}},
+        "collections": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["collectionId", "operationId", "subscriptionId", "collectionStatus", "startedAt", "completedAt", "startAgeMicroseconds", "completionAgeMicroseconds", "ageInterpretation", "issues", "evidenceRefs"],
+          "properties": {
+            "collectionId": {"type": "string"}, "operationId": {"type": "string"}, "subscriptionId": {"type": "string", "format": "uuid"},
+            "collectionStatus": {"enum": ["succeeded", "partial", "permissionDenied", "unavailable", "unsupported", "failed", "notAttempted"]},
+            "startedAt": {"$ref": "#/$defs/timestamp"}, "completedAt": {"$ref": "#/$defs/timestamp"},
+            "startAgeMicroseconds": {"type": ["integer", "null"], "minimum": 0},
+            "completionAgeMicroseconds": {"type": ["integer", "null"], "minimum": 0},
+            "ageInterpretation": {"const": "age-only-validity-unknown"},
+            "issues": {"type": "array", "items": {"type": "string"}}, "evidenceRefs": {"$ref": "#/$defs/refs"}
+          }
+        }},
+        "intent": {
+          "type": ["object", "null"], "additionalProperties": false,
+          "required": ["classification", "intentSha256", "source", "declarationAgeMicroseconds", "reviewAgeMicroseconds", "validity", "provenanceVerification", "issues"],
+          "properties": {
+            "classification": {"const": "DECLARED"}, "intentSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "source": {"type": "object"},
+            "declarationAgeMicroseconds": {"type": ["integer", "null"], "minimum": 0},
+            "reviewAgeMicroseconds": {"type": ["integer", "null"], "minimum": 0},
+            "validity": {"const": "UNKNOWN"},
+            "provenanceVerification": {"const": "operator-supplied-not-independently-authenticated"},
+            "issues": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      }
+    },
+    "dnsResolverAdoption": {
+      "type": "object", "additionalProperties": false,
+      "required": ["resolverIds", "collectionRefs", "consumers", "rulesets", "migrationIntent", "actualClientUse", "limitations"],
+      "properties": {
+        "resolverIds": {"$ref": "#/$defs/refs"}, "collectionRefs": {"$ref": "#/$defs/refs"},
+        "migrationIntent": {"const": "UNKNOWN"}, "actualClientUse": {"const": "UNKNOWN"},
+        "limitations": {"type": "array", "items": {"type": "string"}},
+        "consumers": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["vnetId", "dnsMode", "unknownAddressCount", "inboundEndpointCandidates", "observedRulesetLinkIds", "rulesetsWithSucceededLinks", "linkCoverage", "unreadyLinkIds", "evidenceRefs"],
+          "properties": {
+            "vnetId": {"type": "string"}, "dnsMode": {"enum": ["UNKNOWN", "custom-configured", "azure-provided-configured"]},
+            "unknownAddressCount": {"type": "integer", "minimum": 0},
+            "inboundEndpointCandidates": {"$ref": "#/$defs/refs"},
+            "observedRulesetLinkIds": {"$ref": "#/$defs/refs"}, "rulesetsWithSucceededLinks": {"$ref": "#/$defs/refs"},
+            "linkCoverage": {"enum": ["UNKNOWN", "accessible-parent-lists-collected"]},
+            "unreadyLinkIds": {"$ref": "#/$defs/refs"}, "evidenceRefs": {"$ref": "#/$defs/refs"}
+          }
+        }},
+        "rulesets": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["rulesetId", "observedLinkIds", "unknownLinkTargetIds", "observedVnetIds", "vnetIdsWithSucceededLinks", "linkCoverage", "ruleCoverage", "enabledRuleIds", "disabledRuleIds", "unknownRuleStateIds", "outboundEndpointIds", "unverifiedOutboundEndpointIds", "outboundReferencesKnown", "unknownOutboundReferenceCount", "evidenceRefs"],
+          "properties": {
+            "rulesetId": {"type": "string"}, "observedLinkIds": {"$ref": "#/$defs/refs"},
+            "unknownLinkTargetIds": {"$ref": "#/$defs/refs"}, "observedVnetIds": {"$ref": "#/$defs/refs"}, "vnetIdsWithSucceededLinks": {"$ref": "#/$defs/refs"},
+            "linkCoverage": {"enum": ["UNKNOWN", "accessible-parent-list-collected"]},
+            "ruleCoverage": {"enum": ["UNKNOWN", "accessible-parent-list-collected"]},
+            "enabledRuleIds": {"$ref": "#/$defs/refs"}, "disabledRuleIds": {"$ref": "#/$defs/refs"},
+            "unknownRuleStateIds": {"$ref": "#/$defs/refs"}, "outboundEndpointIds": {"$ref": "#/$defs/refs"},
+            "unverifiedOutboundEndpointIds": {"$ref": "#/$defs/refs"},
+            "outboundReferencesKnown": {"type": "boolean"},
+            "unknownOutboundReferenceCount": {"type": "integer", "minimum": 0},
+            "evidenceRefs": {"$ref": "#/$defs/refs"}
+          }
+        }}
+      }
+    },
+    "coverage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "permissionCompleteness", "accessibleResultsOnly", "indexFreshness", "issues"],
+      "properties": {
+        "status": {"enum": ["accessible-pages-collected", "partial"]},
+        "permissionCompleteness": {"const": "UNKNOWN"},
+        "accessibleResultsOnly": {"const": true},
+        "indexFreshness": {"const": "not-independently-established"},
+        "issues": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "dataHandling": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sourceSensitivity", "redactionState", "resourceIdentifierHandling", "rawResponsesPersisted", "retentionDecision", "omittedSensitiveProperties"],
+      "properties": {
+        "sourceSensitivity": {"const": "customer-internal"},
+        "redactionState": {"const": "allowlisted-properties-only"},
+        "resourceIdentifierHandling": {"const": "preserved-in-access-controlled-engineering-artifacts"},
+        "rawResponsesPersisted": {"const": false},
+        "retentionDecision": {"const": "prototype-run-only-no-external-publication"},
+        "omittedSensitiveProperties": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "configuration": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "privateLinkResourceId": {"type": ["string", "null"]},
+        "profileId": {"type": ["string", "null"]},
+        "accessMode": {"type": ["string", "null"]},
+        "hasProvisioningIssues": {"type": ["string", "boolean", "null"]},
+        "addressPrefixCount": {"type": ["integer", "null"], "minimum": 0},
+        "fqdnCount": {"type": ["integer", "null"], "minimum": 0},
+        "subscriptionSelectorCount": {"type": ["integer", "null"], "minimum": 0},
+        "serviceTagCount": {"type": ["integer", "null"], "minimum": 0},
+        "emailSelectorCount": {"type": ["integer", "null"], "minimum": 0},
+        "phoneSelectorCount": {"type": ["integer", "null"], "minimum": 0},
+        "publicNetworkAccess": {"type": ["string", "null"]},
+        "firewallDefaultAction": {"type": ["string", "null"]},
+        "trustedServiceBypass": {"type": ["string", "null"]},
+        "ipRuleCount": {"type": ["integer", "null"], "minimum": 0},
+        "virtualNetworkRuleCount": {"type": ["integer", "null"], "minimum": 0},
+        "resourceAccessRuleCount": {"type": ["integer", "null"], "minimum": 0},
+        "dnsServers": {"type": ["array", "null"], "items": {"type": "string"}},
+        "dnsServersKnown": {"type": ["boolean", "null"]},
+        "outboundEndpointIds": {"type": ["array", "null"], "items": {"type": "string"}},
+        "inboundSubnetIds": {"type": ["array", "null"], "items": {"type": "string"}},
+        "inboundIpAddresses": {"type": ["array", "null"], "items": {"type": "string"}},
+        "domainName": {"type": ["string", "null"]},
+        "forwardingRuleState": {"type": ["string", "null"]},
+        "targetDnsServerIPs": {"type": ["array", "null"], "items": {"type": ["string", "null"]}},
+        "targetDnsServerPorts": {"type": ["array", "null"], "items": {"type": ["integer", "null"], "minimum": 1, "maximum": 65535}},
+        "targetDnsServersKnown": {"type": ["boolean", "null"]},
+        "addressPrefixes": {"type": ["array", "null"], "items": {"type": "string"}},
+        "addressPrefix": {"type": ["string", "null"]},
+        "subnetCount": {"type": ["integer", "null"], "minimum": 0},
+        "peeringCount": {"type": ["integer", "null"], "minimum": 0},
+        "routeCount": {"type": ["integer", "null"], "minimum": 0},
+        "customRuleCount": {"type": ["integer", "null"], "minimum": 0},
+        "defaultRuleCount": {"type": ["integer", "null"], "minimum": 0},
+        "ipConfigurationCount": {"type": ["integer", "null"], "minimum": 0},
+        "networkSecurityGroupId": {"type": ["string", "null"]},
+        "networkSecurityGroupKnown": {"type": ["boolean", "null"]},
+        "routeTableId": {"type": ["string", "null"]},
+        "routeTableKnown": {"type": ["boolean", "null"]},
+        "remoteVNetId": {"type": ["string", "null"]},
+        "peeringState": {"type": ["string", "null"]},
+        "provisioningState": {"type": ["string", "null"]},
+        "allowVirtualNetworkAccess": {"type": ["boolean", "null"]},
+        "allowForwardedTraffic": {"type": ["boolean", "null"]},
+        "allowGatewayTransit": {"type": ["boolean", "null"]},
+        "useRemoteGateways": {"type": ["boolean", "null"]},
+        "disableBgpRoutePropagation": {"type": ["boolean", "null"]},
+        "nextHopType": {"type": ["string", "null"]},
+        "nextHopIpAddress": {"type": ["string", "null"]},
+        "isDefault": {"type": ["boolean", "null"]},
+        "priority": {"type": ["integer", "null"]},
+        "direction": {"type": ["string", "null"]},
+        "access": {"type": ["string", "null"]},
+        "protocol": {"type": ["string", "null"]},
+        "sourceAddressPrefix": {"type": ["string", "null"]},
+        "sourceAddressPrefixes": {"type": ["array", "null"], "items": {"type": "string"}},
+        "destinationAddressPrefix": {"type": ["string", "null"]},
+        "destinationAddressPrefixes": {"type": ["array", "null"], "items": {"type": "string"}},
+        "sourcePortRange": {"type": ["string", "null"]},
+        "sourcePortRanges": {"type": ["array", "null"], "items": {"type": "string"}},
+        "destinationPortRange": {"type": ["string", "null"]},
+        "destinationPortRanges": {"type": ["array", "null"], "items": {"type": "string"}},
+        "subnetId": {"type": ["string", "null"]},
+        "workloadId": {"type": ["string", "null"]},
+        "privateIPAddress": {"type": ["string", "null"]},
+        "automaticConnectionCount": {"type": ["integer", "null"], "minimum": 0},
+        "manualConnectionCount": {"type": ["integer", "null"], "minimum": 0},
+        "connectionKind": {"type": ["string", "null"]},
+        "privateLinkServiceId": {"type": ["string", "null"]},
+        "groupIds": {"type": ["array", "null"], "items": {"type": "string"}},
+        "connectionStatus": {"type": ["string", "null"]},
+        "virtualNetworkLinkCount": {"type": ["integer", "null"], "minimum": 0},
+        "virtualNetworkId": {"type": ["string", "null"]},
+        "registrationEnabled": {"type": ["boolean", "null"]},
+        "virtualNetworkLinkState": {"type": ["string", "null"]},
+        "privateDnsZoneIds": {"type": ["array", "null"], "items": {"type": "string"}},
+        "reportedRecordSetCount": {"type": ["integer", "null"], "minimum": 0},
+        "selectedRecordSetCount": {"type": "integer", "minimum": 0, "maximum": 2000},
+        "aRecordSetCount": {"type": "integer", "minimum": 0},
+        "aaaaRecordSetCount": {"type": "integer", "minimum": 0},
+        "cnameRecordSetCount": {"type": "integer", "minimum": 0},
+        "mxRecordSetCount": {"type": "integer", "minimum": 0},
+        "ptrRecordSetCount": {"type": "integer", "minimum": 0},
+        "soaRecordSetCount": {"type": "integer", "minimum": 0},
+        "srvRecordSetCount": {"type": "integer", "minimum": 0},
+        "txtRecordSetCount": {"type": "integer", "minimum": 0},
+        "unknownTypeCount": {"type": "integer", "minimum": 0},
+        "unknownTtlCount": {"type": "integer", "minimum": 0},
+        "minTtl": {"type": ["integer", "null"], "minimum": 0, "maximum": 2147483647},
+        "maxTtl": {"type": ["integer", "null"], "minimum": 0, "maximum": 2147483647}
+      }
+    },
+    "page": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pageIndex", "itemCount", "totalRecords", "hasContinuation", "resultTruncated"],
+      "properties": {
+        "pageIndex": {"type": "integer", "minimum": 0},
+        "itemCount": {"type": "integer", "minimum": 0},
+        "totalRecords": {"type": ["integer", "null"], "minimum": 0},
+        "hasContinuation": {"type": "boolean"},
+        "resultTruncated": {"type": ["boolean", "null"]},
+        "parentResourceId": {"type": "string"},
+        "armHasContinuation": {"type": "boolean"},
+        "readStatus": {"enum": ["succeeded", "partial", "permissionDenied", "unavailable", "unsupported", "failed", "notAttempted"]},
+        "readError": {"type": ["string", "null"]},
+        "completedAt": {"$ref": "#/$defs/timestamp"}
+      }
+    },
+    "collection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["collectionId", "operationId", "operationVersion", "source", "querySha256", "requestedSubscriptionId", "startedAt", "completedAt", "status", "pages", "returnedSubscriptionIds", "retainedRowCount", "issues"],
+      "properties": {
+        "collectionId": {"$ref": "#/$defs/id"},
+        "operationId": {"type": "string"},
+        "operationVersion": {"type": "string"},
+        "apiVersion": {"enum": ["2023-05-01", "2023-07-01", "2024-07-01"]},
+        "source": {"enum": ["azure-cli", "sre-native-cli", "synthetic-fixture", "managed-identity-arm"]},
+        "querySha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+        "requestedSubscriptionId": {"type": "string", "format": "uuid"},
+        "startedAt": {"$ref": "#/$defs/timestamp"},
+        "completedAt": {"$ref": "#/$defs/timestamp"},
+        "status": {"enum": ["succeeded", "partial", "permissionDenied", "unavailable", "unsupported", "failed", "notAttempted"]},
+        "pages": {"type": "array", "items": {"$ref": "#/$defs/page"}},
+        "returnedSubscriptionIds": {"type": "array", "items": {"type": "string", "format": "uuid"}, "uniqueItems": true},
+        "retainedRowCount": {"type": "integer", "minimum": 0},
+        "executionRefs": {"$ref": "#/$defs/refs"},
+        "issues": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "entity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["entityId", "resourceId", "resourceType", "name", "subscriptionId", "resourceGroup", "location", "collectionState", "properties", "evidenceRefs"],
+      "properties": {
+        "entityId": {"$ref": "#/$defs/id"},
+        "resourceId": {"type": "string"},
+        "resourceType": {"type": "string"},
+        "name": {"type": "string"},
+        "subscriptionId": {"type": ["string", "null"]},
+        "resourceGroup": {"type": ["string", "null"]},
+        "location": {"type": ["string", "null"]},
+        "collectionState": {"enum": ["collected", "contextOnly", "referenceOnly", "configurationObject"]},
+        "properties": {"$ref": "#/$defs/configuration"},
+        "evidenceRefs": {"$ref": "#/$defs/refs"}
+      }
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evidenceId", "collectionId", "subjectId", "source", "collectedAt", "classification", "propertyPaths", "excerpt", "sha256", "hashScope", "redactionState"],
+      "properties": {
+        "evidenceId": {"$ref": "#/$defs/id"},
+        "collectionId": {"$ref": "#/$defs/id"},
+        "subjectId": {"$ref": "#/$defs/id"},
+        "source": {"enum": ["azure-cli", "sre-native-cli", "synthetic-fixture", "managed-identity-arm"]},
+        "collectedAt": {"$ref": "#/$defs/timestamp"},
+        "classification": {"const": "OBSERVED"},
+        "propertyPaths": {"type": "array", "items": {"type": "string"}},
+        "excerpt": {
+          "type": "object", "additionalProperties": false,
+          "required": ["resourceId", "resourceType", "name", "subscriptionId", "resourceGroup", "location", "parentId", "properties"],
+          "properties": {
+            "resourceId": {"type": "string"}, "resourceType": {"type": "string"},
+            "name": {"type": "string"}, "subscriptionId": {"type": "string", "format": "uuid"},
+            "resourceGroup": {"type": ["string", "null"]}, "location": {"type": ["string", "null"]},
+            "parentId": {"type": "string"},
+            "properties": {"$ref": "#/$defs/configuration"}
+          }
+        },
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "hashScope": {"const": "canonical-retained-excerpt-not-raw-response"},
+        "redactionState": {"const": "allowlisted-properties-only"}
+      }
+    }
+  }
+}

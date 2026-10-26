@@ -1,0 +1,47 @@
+{
+  "_comment": "Pinned upstream inputs for Invoke-WaraRun.ps1. Change deliberately, record the reason in the plugin README change log, and re-run the RG smoke test before publishing.",
+  "wara": {
+    "galleryModule": "WARA",
+    "galleryVersion": "1.0.6",
+    "gitRepository": "https://github.com/Azure/Well-Architected-Reliability-Assessment.git",
+    "gitCommit": "86832273f857b7298b625b26d18e2e0dbb06714c",
+    "manifestPath": "src/modules/wara/wara.psd1",
+    "resourceTypesSnapshotPath": "src/tests/data/wara/test_recommendationresourcetypesdata.csv",
+    "notes": "Last upstream commit 2025-06-12 (v1.0.6). The project appears unmaintained; see README 'Upstream maintenance risk'."
+  },
+  "aprl": {
+    "gitRepository": "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2.git",
+    "gitCommit": "69d73cbdc2729f5e94ab1184304ef4b9a5119ba2",
+    "notes": "APRL is actively maintained (commit dated 2026-10-05). Use -AprlRef main to assess with the newest recommendations; the resolved commit is always recorded in run.json."
+  },
+  "published": {
+    "recommendationDataUri": "https://azure.github.io/WARA-Build/objects/recommendations.json",
+    "resourceTypesUri": "https://azure.github.io/WARA-Build/objects/WARAinScopeResTypes.csv"
+  },
+  "azAccounts": {
+    "galleryVersion": "3.0.4",
+    "nugetPackageUri": "https://api.nuget.org/v3-flatcontainer/az.accounts/3.0.4/az.accounts.3.0.4.nupkg",
+    "version": "3.0.4"
+  },
+  "azResourceGraph": {
+    "galleryVersion": "1.0.0",
+    "restrictedMode": "Bundled shim at scripts/shims/Az.ResourceGraph (Search-AzGraph over the Resource Graph REST API 2022-10-01)."
+  },
+  "importExcel": {
+    "galleryVersion": "7.8.10",
+    "gitRepository": "https://github.com/dfinke/ImportExcel.git",
+    "gitCommit": "5387c061461c811d106b125588f064c4739342cb"
+  },
+  "reporting": {
+    "_comment": "Optional: generate_reports.py (python) and Get-EnvironmentEvidence.ps1 (Az.Accounts above). Templates come from the cached WARA source at wara.gitCommit.",
+    "pythonPackages": [
+      "python-pptx>=1.0",
+      "python-docx>=1.1",
+      "openpyxl>=3.1",
+      "matplotlib>=3.8",
+      "PyYAML>=6.0"
+    ],
+    "pptTemplatePath": "src/modules/wara/reports/Mandatory - Executive Summary presentation - Template.pptx",
+    "findingsTemplatePath": "src/modules/wara/reports/Assessment-Findings-Report-v1.xlsx"
+  }
+}

@@ -1,0 +1,61 @@
+# Environment / criticality classification rules for WARA reports (generate_reports.py).
+# Advisory overlay only: it never changes the deterministic P1-P4 band in prioritized-findings.json.
+# Customers can supply their own copy with --classification-config.
+schemaVersion: "1.0"
+
+tiers:
+  PROD-PRIMARY: {label: "Production (primary)", order: 1}
+  PROD-DR:      {label: "Production (DR / secondary)", order: 2}
+  UAT:          {label: "UAT / pre-production", order: 3}
+  TEST:         {label: "Test / QA", order: 4}
+  DEV:          {label: "Development / lab", order: 5}
+  UNKNOWN:      {label: "Unclassified (assessed as Production)", order: 0}
+
+# Resources with no signal are assessed against this tier (conservative).
+unknownAssessedAs: PROD-PRIMARY
+
+# Tag keys that declare environment/criticality explicitly (case-insensitive). Confidence: High.
+explicitTagKeys: [Criticality, Environment, Env, EnvironmentType, Environment-Type, Stage, Tier]
+# Tag keys whose values may hint at the environment (case-insensitive). Confidence: Low.
+heuristicTagKeys: [azd-env-name, workload, application, app, project]
+
+# Value patterns (Python regex on the lower-cased tag value). First match wins.
+valuePatterns:
+  - {tier: PROD-DR,      regex: '(^|[^a-z])(dr|disaster[-_ ]?recovery|secondary|failover)([^a-z]|$)'}
+  - {tier: PROD-PRIMARY, regex: '(^|[^a-z])(prod|production|prd|primary|live|mission[-_ ]?critical|business[-_ ]?critical)([^a-z]|$)'}
+  - {tier: UAT,          regex: '(^|[^a-z])(uat|staging|stage|stg|preprod|pre-prod|pre-production)([^a-z]|$)'}
+  - {tier: TEST,         regex: '(^|[^a-z])(test|tst|qa|sit|perf)([^a-z]|$)'}
+  - {tier: DEV,          regex: '(^|[^a-z])(dev|development|sandbox|sbx|poc|demo|training)([^a-z]|$)|lab([^a-z]|$)'}
+
+# Subscription offers (subscriptionPolicies.quotaId) treated as non-production. Applied after explicit
+# tags and before naming heuristics. An explicit Production tag on one of these offers is reported as a conflict.
+nonProductionOffers:
+  - {pattern: '^MSDN_', tier: DEV, reason: "MSDN / Visual Studio subscriber benefit (Dev/Test use only)"}
+  - {pattern: '^MSDNDevTest', tier: DEV, reason: "MSDN Dev/Test offer"}
+  - {pattern: 'DevTest', tier: DEV, reason: "Dev/Test offer"}
+  - {pattern: '^MS-AZR-0148', tier: DEV, reason: "Enterprise Dev/Test offer"}
+  - {pattern: '^MS-AZR-0023', tier: DEV, reason: "Pay-As-You-Go Dev/Test offer"}
+  - {pattern: '^MS-AZR-00(29|59|60|62|63|64)', tier: DEV, reason: "Visual Studio subscriber offer"}
+  - {pattern: '^Internal_', tier: DEV, reason: "Microsoft internal subscription, treated as development/lab (owner decision 2026-10-09; remove for internal production)"}
+
+# Requirement level per tier and WARA recommendation control. Levels: Required | Recommended | Optional | NotRequired
+requirements:
+  PROD-PRIMARY: {HighAvailability: Required, DisasterRecovery: Required, Scalability: Required, MonitoringAndAlerting: Required, ServiceUpgradeAndRetirement: Required, Security: Required, OtherBestPractices: Recommended, Governance: Recommended, Personalized: Recommended, default: Required}
+  PROD-DR:      {HighAvailability: Required, DisasterRecovery: Required, Scalability: Recommended, MonitoringAndAlerting: Required, ServiceUpgradeAndRetirement: Required, Security: Required, OtherBestPractices: Recommended, Governance: Recommended, Personalized: Recommended, default: Required}
+  UAT:          {HighAvailability: Recommended, DisasterRecovery: Optional, Scalability: Recommended, MonitoringAndAlerting: Recommended, ServiceUpgradeAndRetirement: Required, Security: Required, OtherBestPractices: Recommended, Governance: Recommended, Personalized: Optional, default: Recommended}
+  TEST:         {HighAvailability: Optional, DisasterRecovery: Optional, Scalability: Optional, MonitoringAndAlerting: Optional, ServiceUpgradeAndRetirement: Required, Security: Required, OtherBestPractices: Optional, Governance: Recommended, Personalized: Optional, default: Optional}
+  DEV:          {HighAvailability: NotRequired, DisasterRecovery: NotRequired, Scalability: Optional, MonitoringAndAlerting: Optional, ServiceUpgradeAndRetirement: Required, Security: Required, OtherBestPractices: Optional, Governance: Recommended, Personalized: Optional, default: Optional}
+
+actions:
+  Required: "Remediate; deterministic band stands"
+  Recommended: "Remediate or record a documented risk acceptance"
+  Optional: "Remediate if cheap; otherwise accept the risk (confirm the environment classification first)"
+  NotRequired: "Candidate for an accepted-risk suppression once the environment classification is confirmed"
+
+profiles:
+  PROD-PRIMARY: "Zone-redundant compute and data; at least 2 instances (3 when zone-redundant); geo-redundant backup and a tested DR plan to the paired or secondary region; health and service-health alerting; controlled maintenance windows."
+  PROD-DR: "Capacity and configuration able to take over the primary's RTO/RPO; replicated data; DNS and network paths pre-provisioned; failover tested at least annually."
+  UAT: "Production-like topology where it validates releases or failover; single-zone acceptable if documented; same SKU family as production for performance validation."
+  TEST: "Single instance and single zone acceptable; backups per data-retention policy; retirement and security findings still apply."
+  DEV: "Cost-optimized, single instance and single zone; no HA/DR requirement; retirement and security findings still apply; recreate from IaC rather than restore."
+  UNKNOWN: "No environment/criticality signal found; assessed against Production (primary) targets until tagged."

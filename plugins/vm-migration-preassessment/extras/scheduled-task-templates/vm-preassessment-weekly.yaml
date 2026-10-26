@@ -1,0 +1,33 @@
+# Template only. Replace every angle-bracket value, review the scope, then move
+# this file into extras/scheduled-tasks/ before running deploy-extras.
+api_version: azuresre.ai/v1
+kind: ScheduledTask
+metadata:
+  name: vm-preassessment-weekly
+spec:
+  name: vm-preassessment-weekly
+  description: >
+    Weekly read-only Azure VM migration pre-assessment through a protected
+    private GitHub Actions runner.
+  cron: "0 6 * * 1"
+  agent_prompt: |
+    Run the Azure VM migration pre-assessment using the
+    vm-migration-preassessment skill and vm-preassessment-auditor.
+
+    RUNNER REPOSITORY: <owner>/<private-operations-repo>
+    WORKFLOW FILE: vm-preassessment.yml
+    SUBSCRIPTION ID: <subscription-guid>
+    RESOURCE GROUP: <resource-group>
+    SCOPE MODE: resourceGroup
+    TARGET VM SIZE: <target-sku>
+    TARGET ZONE: <1|2|3>
+    TARGET DISK CONTROLLER: NVMe
+    NVME LAYOUT: SingleDisk
+    NVME ALLOCATION UNIT: 4096
+    TARGET SUBNET ID:
+    ALLOW POWER STATE CHANGES: false
+
+    Wait for completion, read the private assessment issue, categorize every
+    blocker using the blocker playbook, and produce the scoped change plan.
+    End with: No migration actions were performed.
+  agent: vm-preassessment-auditor
