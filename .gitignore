@@ -9,6 +9,7 @@ Thumbs.db
 .vscode/
 
 # Never publish generated reports or spreadsheets (may contain real tenant data)
+/outputs/
 *.xlsx
 *.xls
 *.csv
